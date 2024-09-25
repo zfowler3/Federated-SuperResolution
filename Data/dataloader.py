@@ -53,7 +53,7 @@ class InlineLoader(Dataset):
         # apply transforms
         if self.transform:
             section = self.transform(section)
-        #print(section.shape)
+
         label_section = self.label[:, inline_num, :].T
 
 
