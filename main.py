@@ -3,6 +3,9 @@ import os
 import torch
 import argparse
 
+from Utils.get_seismic_data import get_dataset_seismic
+
+
 def args_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--rounds', type=int, default=10,
@@ -19,10 +22,25 @@ def args_parser():
     parser.add_argument('--date', type=str, default='09-25-24', help='Set date for experiments')
     parser.add_argument('--gpu_ids', default='0,1', help="To use cuda, set \
                         to a specific GPU ID. Default set to use CPU.")
-    parser.add_argument('--data_path', type=str, default='/home/zoe/GhassanGT Dropbox/Zoe Fowler/Zoe/InSync/BIGandDATA/Seismic/data/')
+    parser.add_argument('--data_path', type=str,
+                        default='/home/zoe/GhassanGT Dropbox/Zoe Fowler/Zoe/InSync/BIGandDATA/Seismic/data/')
+    parser.add_argument('--path', type=str,
+                        default='/home/zoe/GhassanGT Dropbox/Zoe Fowler/Zoe/InSync/BIGandDATA/Seismic/')
     args = parser.parse_args()
     return args
 
 def main():
     # Argparse
     args = args_parser()
+    # Set CUDA
+    if args.gpu_ids:
+        args.gpu_ids = [int(s) for s in args.gpu_ids.split(',')]
+        #torch.cuda.set_device(args.gpu_ids)
+        args.cuda = True
+
+    # init seed
+    torch.manual_seed(args.seed)
+    np.random.seed(args.seed)
+
+    # Get dataset and groups
+    train_norm, test_norm, user_groups, test2_ = get_dataset_seismic(args)
