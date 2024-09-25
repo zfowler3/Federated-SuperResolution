@@ -65,7 +65,6 @@ for ep in range(epochs):
         images, labels = images.to(device).type(torch.float), labels.to(device).type(torch.long)
         if batch_idx == 0:
             print('Train images: ', images.shape)
-        #output = model(images)['out']  #for deeplab
         output = model(images)
         optimizer.zero_grad()
         # Super resolution loss; between output and ground-truth img
@@ -95,7 +94,10 @@ pred_test_vol = np.zeros(test.shape)
 for batch_idx, (images, labels, idx) in enumerate(test_loader):
     images, labels = images.to(device).type(torch.float), labels.to(device).type(torch.long)
     with torch.no_grad():
-        outputs = model(images)
+        # Get super-resolution image
+        outputs_sr = model(images)
+        # Pass to FaultSegNet
+        outputs = seg_model(outputs_sr)
         pred_test_vol[:, batch_idx, :] = outputs.argmax(1).detach().cpu().numpy().T.squeeze()
         batch_loss = criterion1(outputs, labels)
         loss += batch_loss.item()
