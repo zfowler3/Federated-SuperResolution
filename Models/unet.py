@@ -3,7 +3,7 @@ import torch
 from Models import common
 
 
-def conv(in_f, out_f, kernel_size, stride=1, bias=True, pad='zero', downsample_mode='stride'):
+def conv(in_f, out_f, kernel_size, stride=1, bias=True, pad='reflection', downsample_mode='stride'):
     downsampler = None
     if stride != 1 and downsample_mode != 'stride':
         if downsample_mode == 'avg':
@@ -54,13 +54,10 @@ class ListModule(nn.Module):
         return len(self._modules)
 
 
-def make_model(args):
-    return UNet(feature_scale=args.feature_scale, scale=args.scale)
-
 
 class UNet(nn.Module):
     def __init__(self, n_input_channels=1, n_output_channels=1, feature_scale=1, more_layers=0,
-                 concat_x=False, upsample_model='deconv', pad='zero', norm_layer=nn.BatchNorm2d,
+                 concat_x=False, upsample_model='deconv', pad='reflection', norm_layer=nn.BatchNorm2d,
                  need_bias=True, scale=2):
 
         super(UNet, self).__init__()
@@ -111,7 +108,7 @@ class UNet(nn.Module):
 
         self.final = conv(features[0], n_output_channels, 1, bias=need_bias, pad=pad)
 
-        self.final = nn.Sequential(self.final, nn.Sigmoid())
+        #self.final = nn.Sequential(self.final, nn.Sigmoid())
 
     def forward(self, inputs):
 

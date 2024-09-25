@@ -68,4 +68,9 @@ def main():
     results_path = args.path + 'Results/' + args.date + '/'
     if not os.path.exists(results_path):
         os.makedirs(results_path)
+    model_path = results_path + 'saved models/'
+    if not os.path.exists(model_path):
+        os.makedirs(model_path)
+
+    
 
