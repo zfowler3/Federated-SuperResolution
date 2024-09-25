@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 import torch
 import torchvision
@@ -7,6 +9,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 from torchvision.transforms import transforms
 from Data.dataloader import InlineLoader
+from Models.segnet import FaciesSegNet
 from Models.unet import UNet
 
 data_transforms = transforms.Compose([
@@ -39,11 +42,14 @@ test_loader2 = DataLoader(test_dataset2, batch_size=1, shuffle=False)
 device = 'cuda'
 epochs = 20
 lr = 0.001
-classification_model = FaciesSegNet(n_class=6).to(device)
-# model = torchvision.models.segmentation.deeplabv3_resnet50(weights='DEFAULT')
-# model.backbone.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
-# model.classifier[4] = nn.Conv2d(in_channels=256, out_channels=6, kernel_size=1, stride=1)
-# model.aux_classifier[4] = nn.Conv2d(256, 6, 1)
+seg_model = FaciesSegNet(n_class=6)
+# load in pretrained weights
+
+# freeze seg_model
+for param in seg_model.parameters():
+    param.requires_grad = False
+seg_model = seg_model.to(device)
+# For SR model
 model = UNet(feature_scale=4)
 model = model.to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
@@ -62,15 +68,12 @@ for ep in range(epochs):
         #output = model(images)['out']  #for deeplab
         output = model(images)
         optimizer.zero_grad()
-        # Super resolution loss
+        # Super resolution loss; between output and ground-truth img
         loss_sr = alpha*criterion2(output, images)
         # Cross-entropy loss; try to get correct segmentation
-        loss_ce = (1-alpha)*criterion1(output, labels)
-        # output, reconstruct = model(images)  #
-        # optimizer.zero_grad()
-        # seg_loss = criterion1(output, labels)
-        # reconstruction_loss = criterion2(reconstruct, images)
-        # loss = seg_loss + reconstruction_loss
+        # Pass in SR img into FaciesSegNet
+        output_segmentation = seg_model(copy.deepcopy(output))
+        loss_ce = (1-alpha)*criterion1(output_segmentation, labels)
         # Combined loss
         loss = loss_sr + loss_ce
         loss.backward()
