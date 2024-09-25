@@ -2,7 +2,9 @@ import numpy as np
 import os
 import torch
 import argparse
+from torchvision.transforms import transforms
 
+from Data.dataloader import InlineLoader
 from Utils.get_seismic_data import get_dataset_seismic
 
 
@@ -44,3 +46,10 @@ def main():
 
     # Get dataset and groups
     train_norm, test_norm, user_groups, test2_ = get_dataset_seismic(args)
+    test_labels = np.load(args.data_path + 'test_once/test2_labels.npy')
+    # Set up dataloaders
+    data_transforms_test = transforms.Compose([
+        transforms.ToTensor()
+    ])
+    test_dataset = InlineLoader(test_norm, label_cube=test_labels, inline_inds=list(np.arange(0, test_norm.shape[1])),
+                                train_status=False, transform=data_transforms_test)
