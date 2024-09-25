@@ -2,9 +2,9 @@ import numpy as np
 
 def get_dataset_seismic(args):
 
-    train_data = np.load('/home/zoe/data/train/train_seismic.npy')
-    test_seismic = np.load('/home/zoe/data/test_once/test2_seismic.npy')
-    test2 = np.load('/home/zoe/data/test_once/test1_seismic.npy')
+    train_data = np.load(args.data_path + 'train/train_seismic.npy')
+    test_seismic = np.load(args.data_path + 'test_once/test2_seismic.npy')
+    test2 = np.load(args.data_path + 'test_once/test1_seismic.npy')
     # Normalize seismic
     train_data = (train_data - train_data.min()) / (train_data.max() - train_data.min())
     test_seismic = (test_seismic - test_seismic.min()) / (test_seismic.max() - test_seismic.min())
