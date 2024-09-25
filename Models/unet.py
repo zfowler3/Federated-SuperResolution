@@ -108,7 +108,7 @@ class UNet(nn.Module):
 
         self.final = conv(features[0], n_output_channels, 1, bias=need_bias, pad=pad)
 
-        #self.final = nn.Sequential(self.final, nn.Sigmoid())
+        self.final = nn.Sequential(self.final, nn.Sigmoid())
 
     def forward(self, inputs):
 

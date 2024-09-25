@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import torchvision
+import matplotlib.pyplot as plt
 from sklearn.metrics import jaccard_score
 from torch import nn
 from torch.utils.data import DataLoader
@@ -38,12 +39,12 @@ test_loader2 = DataLoader(test_dataset2, batch_size=1, shuffle=False)
 device = 'cuda'
 epochs = 20
 lr = 0.001
-#model = FaciesSegNet(n_class=6).to(device)
+classification_model = FaciesSegNet(n_class=6).to(device)
 # model = torchvision.models.segmentation.deeplabv3_resnet50(weights='DEFAULT')
 # model.backbone.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
 # model.classifier[4] = nn.Conv2d(in_channels=256, out_channels=6, kernel_size=1, stride=1)
 # model.aux_classifier[4] = nn.Conv2d(256, 6, 1)
-model = UNet(n_output_channels=6)
+model = UNet(feature_scale=4)
 model = model.to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
 criterion1 = nn.CrossEntropyLoss().to(device)
@@ -91,7 +92,7 @@ pred_test_vol = np.zeros(test.shape)
 for batch_idx, (images, labels, idx) in enumerate(test_loader):
     images, labels = images.to(device).type(torch.float), labels.to(device).type(torch.long)
     with torch.no_grad():
-        outputs = model(images)['out']
+        outputs = model(images)
         pred_test_vol[:, batch_idx, :] = outputs.argmax(1).detach().cpu().numpy().T.squeeze()
         batch_loss = criterion1(outputs, labels)
         loss += batch_loss.item()
