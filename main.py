@@ -46,14 +46,26 @@ def main():
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
 
+    # Set up number of ensembles
+    C = args.num_users
+
     # Get dataset and groups
     train_norm, test_norm, user_groups, test2_ = get_dataset_seismic(args)
     test_labels = np.load(args.data_path + 'test_once/test2_labels.npy')
-
+    testlab2 = np.load(args.data_path + 'test_once/test1_labels.npy')
     # Set up dataloaders
     data_transforms_test = transforms.Compose([
         transforms.ToTensor()
     ])
     test_dataset = InlineLoader(test_norm, label_cube=test_labels, inline_inds=list(np.arange(0, test_norm.shape[1])),
                                 train_status=False, transform=data_transforms_test)
+    test2 = InlineLoader(test2_, testlab2, inline_inds=list(np.arange(0, test2_.shape[1])), train_status=False,
+                         transform=data_transforms_test)
     test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
+    test_loader2 = DataLoader(test2, batch_size=1, shuffle=False)
+
+    # Define folder to save results
+    results_path = args.path + 'Results/' + args.date + '/'
+    if not os.path.exists(results_path):
+        os.makedirs(results_path)
+

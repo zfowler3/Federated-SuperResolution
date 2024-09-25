@@ -12,7 +12,7 @@ def get_dataset_seismic(args):
     # Create client idxs
     user_idxs = create_clients(train_data, args.num_users)
 
-    return train_data, test_seismic, user_idxs, test2
+    return train_data, test_seismic, user_idxs, test2_s
 
 def create_clients(data, num_clients):
     # Clients will be divided in seismic based on crosslines
