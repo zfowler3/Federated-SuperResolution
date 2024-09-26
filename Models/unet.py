@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch
 from Models import common
-
+# https://github.com/Mnster00/simplifiedUnetSR/blob/master/Unet/Umodel.py
 
 def conv(in_f, out_f, kernel_size, stride=1, bias=True, pad='reflection', downsample_mode='stride'):
     downsampler = None
@@ -57,7 +57,7 @@ class ListModule(nn.Module):
 
 class UNet(nn.Module):
     def __init__(self, n_input_channels=1, n_output_channels=1, feature_scale=1, more_layers=0,
-                 concat_x=False, upsample_model='deconv', pad='reflection', norm_layer=nn.BatchNorm2d,
+                 concat_x=False, upsample_model='deconv', pad='zero', norm_layer=nn.BatchNorm2d,
                  need_bias=True, scale=2):
 
         super(UNet, self).__init__()
