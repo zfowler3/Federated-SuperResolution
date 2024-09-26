@@ -36,7 +36,8 @@ train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)
 valid_dataset_1 = InlineLoader(seismic_cube=valid_1_data, label_cube=valid_1_labels, inline_inds=list(np.arange(0, valid_1_data.shape[1])), train_status=False, transform=data_transforms)
 val_batch_size = 2
 valid_loader_1 = DataLoader(valid_dataset_1, batch_size=val_batch_size, shuffle=True)
-
+valid_dataset_2 = InlineLoader(seismic_cube=valid_2_data, label_cube=valid_2_labels, inline_inds=list(np.arange(0, valid_2_data.shape[1])), train_status=False, transform=data_transforms)
+valid_loader_2 = DataLoader(valid_dataset_2, batch_size=val_batch_size, shuffle=True)
 # Create test dataset and loader
 test_data = np.load('/home/zoe/GhassanGT Dropbox/Zoe Fowler/Zoe/InSync/BIGandDATA/Seismic/data/test_once/test2_seismic.npy')
 test_labels = np.load('/home/zoe/GhassanGT Dropbox/Zoe Fowler/Zoe/InSync/BIGandDATA/Seismic/data/test_once/test2_labels.npy')
@@ -122,48 +123,48 @@ for ep in range(epochs):
 print('---Training complete---')
 print('Testing trained model . . .')
 
-model.eval()
-loss = 0
-total = 0
-test_loss = []
-pred_test_vol = np.zeros(test.shape)
-
-for batch_idx, (images, labels, idx) in enumerate(test_loader):
-    images, labels = images.to(device).type(torch.float), labels.to(device).type(torch.long)
-    with torch.no_grad():
-        # Get super-resolution image
-        outputs_sr = model(images)
-        # Pass to FaultSegNet
-        outputs = seg_model(outputs_sr)
-        pred_test_vol[:, batch_idx, :] = outputs.argmax(1).detach().cpu().numpy().T.squeeze()
-        batch_loss = criterion1(outputs, labels)
-        loss += batch_loss.item()
-        test_loss.append(batch_loss.item())
-total_loss = sum(test_loss)/len(test_loss)
-print('Testing Loss: ', total_loss)
-miou_test = jaccard_score(test_labels.flatten(), pred_test_vol.flatten(), labels=list(range(6)), average='weighted')
-miou_test_class = jaccard_score(test_labels.flatten(), pred_test_vol.flatten(), labels=list(range(6)), average=None)
-loss = 0
-total = 0
-test_loss = []
-pred_test_vol = np.zeros(test2.shape)
-
-for batch_idx, (images, labels, idx) in enumerate(test_loader2):
-    images, labels = images.to(device).type(torch.float), labels.to(device).type(torch.long)
-    with torch.no_grad():
-        outputs = model(images)['out']
-        pred_test_vol[:, batch_idx, :] = outputs.argmax(1).detach().cpu().numpy().T.squeeze()
-        batch_loss = criterion1(outputs, labels)
-        loss += batch_loss.item()
-        test_loss.append(batch_loss.item())
-total_loss = sum(test_loss)/len(test_loss)
-print('Testing Loss: ', total_loss)
-miou_test2 = jaccard_score(test_labels2.flatten(), pred_test_vol.flatten(), labels=list(range(6)), average='weighted')
-miou_test_class2 = jaccard_score(test_labels2.flatten(), pred_test_vol.flatten(), labels=list(range(6)), average=None)
-print('Baseline MIOU Score for Test set 1: ', miou_test)
-print('Baseline MIOU Score for Test set 2: ', miou_test2)
-file_info = 'test loss, test mean iou1, test mean iou2, class miou1, class miou2, total epochs\n'
-data = str(total_loss) + ', ' + str(miou_test) + ', ' + str(miou_test2) + ', ' + str(miou_test_class) + ', ' + str(miou_test_class2) + ', ' + str(epochs) + '\n'
-with open("/home/zoe/Federated-Learning/Seismic-Baseline-2.txt", "w") as file:
-    file.write(file_info)
-    file.write(data)
+# best_model.eval()
+# loss = 0
+# total = 0
+# test_loss = []
+# pred_test_vol = np.zeros(test.shape)
+#
+# for batch_idx, (images, labels, idx) in enumerate(test_loader):
+#     images, labels = images.to(device).type(torch.float), labels.to(device).type(torch.long)
+#     with torch.no_grad():
+#         # Get super-resolution image
+#         outputs_sr = best_model(images)
+#         # Pass to FaultSegNet
+#         #outputs = seg_model(outputs_sr)
+#         pred_test_vol[:, batch_idx, :] = outputs.argmax(1).detach().cpu().numpy().T.squeeze()
+#         batch_loss = criterion1(outputs, labels)
+#         loss += batch_loss.item()
+#         test_loss.append(batch_loss.item())
+# total_loss = sum(test_loss)/len(test_loss)
+# print('Testing Loss: ', total_loss)
+# miou_test = jaccard_score(test_labels.flatten(), pred_test_vol.flatten(), labels=list(range(6)), average='weighted')
+# miou_test_class = jaccard_score(test_labels.flatten(), pred_test_vol.flatten(), labels=list(range(6)), average=None)
+# loss = 0
+# total = 0
+# test_loss = []
+# pred_test_vol = np.zeros(test2.shape)
+#
+# for batch_idx, (images, labels, idx) in enumerate(test_loader2):
+#     images, labels = images.to(device).type(torch.float), labels.to(device).type(torch.long)
+#     with torch.no_grad():
+#         outputs = model(images)['out']
+#         pred_test_vol[:, batch_idx, :] = outputs.argmax(1).detach().cpu().numpy().T.squeeze()
+#         batch_loss = criterion1(outputs, labels)
+#         loss += batch_loss.item()
+#         test_loss.append(batch_loss.item())
+# total_loss = sum(test_loss)/len(test_loss)
+# print('Testing Loss: ', total_loss)
+# miou_test2 = jaccard_score(test_labels2.flatten(), pred_test_vol.flatten(), labels=list(range(6)), average='weighted')
+# miou_test_class2 = jaccard_score(test_labels2.flatten(), pred_test_vol.flatten(), labels=list(range(6)), average=None)
+# print('Baseline MIOU Score for Test set 1: ', miou_test)
+# print('Baseline MIOU Score for Test set 2: ', miou_test2)
+# file_info = 'test loss, test mean iou1, test mean iou2, class miou1, class miou2, total epochs\n'
+# data = str(total_loss) + ', ' + str(miou_test) + ', ' + str(miou_test2) + ', ' + str(miou_test_class) + ', ' + str(miou_test_class2) + ', ' + str(epochs) + '\n'
+# with open("/home/zoe/Federated-Learning/Seismic-Baseline-2.txt", "w") as file:
+#     file.write(file_info)
+#     file.write(data)

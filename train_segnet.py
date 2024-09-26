@@ -25,9 +25,9 @@ train_labels = np.load('/home/zoe/GhassanGT Dropbox/Zoe Fowler/Zoe/InSync/BIGand
 valid_1_data = train[:50, :-50, :]
 valid_2_data = train[:, -50:, :]
 train = train[50:, :-50, :]
-train_labels = train_labels[50:, :-50, :]
 valid_1_labels = train_labels[:50, :-50, :]
 valid_2_labels = train_labels[:, -50:, :]
+train_labels = train_labels[50:, :-50, :]
 # Create datasets and loaders for train and validations
 train_dataset = InlineLoader(seismic_cube=train, label_cube=train_labels, inline_inds=list(np.arange(0, train.shape[1])), train_status=True, transform=data_transforms)
 train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)
