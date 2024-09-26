@@ -82,19 +82,6 @@ class UNet(nn.Module):
         self.down4 = unetDown(features[3], features[4] if not self.concat_x else features[4] - n_input_channels,
                               norm_layer, need_bias, pad)
 
-        # more downsampling layers
-        if more_layers > 0:
-            self.more_downs = [
-                unetDown(features[4], features[4] if not self.concat_x else features[4] - n_input_channels,
-                         norm_layer, need_bias, pad) for i in range(self.more_layers)]
-
-            self.more_ups = [
-                unetUp(features[4], upsample_model, need_bias, pad,
-                       same_num_feat=True) for i in range(self.more_layers)]
-
-            self.more_downs = ListModule(*self.more_downs)
-            self.more_ups = ListModule(*self.more_ups)
-
         self.up4 = unetUp(features[3], upsample_model, need_bias, pad)
         self.up3 = unetUp(features[2], upsample_model, need_bias, pad)
         self.up2 = unetUp(features[1], upsample_model, need_bias, pad)
