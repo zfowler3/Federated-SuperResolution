@@ -34,7 +34,8 @@ train_labels = train_labels[50:, :-50, :]
 train_dataset = InlineLoader(seismic_cube=train, label_cube=train_labels, inline_inds=list(np.arange(0, train.shape[1])), train_status=True, transform=data_transforms)
 train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)
 valid_dataset_1 = InlineLoader(seismic_cube=valid_1_data, label_cube=valid_1_labels, inline_inds=list(np.arange(0, valid_1_data.shape[1])), train_status=False, transform=data_transforms)
-valid_loader_1 = DataLoader(valid_dataset_1, batch_size=2, shuffle=True)
+val_batch_size = 2
+valid_loader_1 = DataLoader(valid_dataset_1, batch_size=val_batch_size, shuffle=True)
 
 # Create test dataset and loader
 test_data = np.load('/home/zoe/GhassanGT Dropbox/Zoe Fowler/Zoe/InSync/BIGandDATA/Seismic/data/test_once/test2_seismic.npy')
@@ -70,8 +71,12 @@ criterion2 = nn.MSELoss().to(device)
 # train
 epoch_loss = []
 alpha = 1
+best_loss = 1000000
+counter = 0
+
 for ep in range(epochs):
     batch_loss = []
+    model.train(True)
     for batch_idx, (images, labels, idx) in enumerate(train_loader):
         images, labels = images.to(device).type(torch.float), labels.to(device).type(torch.long)
         if batch_idx == 0:
@@ -92,6 +97,26 @@ for ep in range(epochs):
         batch_loss.append(loss.item())
     epoch_loss.append(sum(batch_loss) / len(batch_loss))
     print('Train loss for epoch: ', sum(batch_loss) / len(batch_loss))
+    # Validation loop
+    model.train(False)
+    running_loss = []
+    for batch_idx, (images, labels, idx) in enumerate(valid_loader_1):
+        images, labels = images.to(device).type(torch.float), labels.to(device).type(torch.long)
+        output = model(images)
+        optimizer.zero_grad()
+        _loss = criterion2(output, images)
+        running_loss.append(_loss.item())
+    val_loss = sum(running_loss) / len(running_loss)
+    if val_loss < best_loss:
+        best_loss = val_loss
+        counter = 0
+        best_model = copy.deepcopy(model)
+    else:
+        counter += 1
+        if counter >= 10:
+            print('Early stop due to validation loss not decreasing')
+            print('Stop at Epoch ' + str(ep))
+            break
 
 # inference
 print('---Training complete---')
