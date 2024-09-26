@@ -23,6 +23,14 @@ data_transforms_test = transforms.Compose([
 train_data = np.load('/home/zoe/GhassanGT Dropbox/Zoe Fowler/Zoe/InSync/BIGandDATA/Seismic/data/train/train_seismic.npy')
 train = (train_data - train_data.min()) / (train_data.max() - train_data.min())
 train_labels = np.load('/home/zoe/GhassanGT Dropbox/Zoe Fowler/Zoe/InSync/BIGandDATA/Seismic/data/train/train_labels.npy')
+# Determine validation sets
+valid_1_data = train[:50, :-50, :]
+valid_2_data = train[:, -50:, :]
+train = train[50:, :-50, :]
+train_labels = train_labels[50:, :-50, :]
+valid_1_labels = train_labels[:50, :-50, :]
+valid_2_labels = train_labels[:, -50:, :]
+# Dataset - train + valid
 train_dataset = InlineLoader(seismic_cube=train, label_cube=train_labels, inline_inds=list(np.arange(0, train.shape[1])), train_status=True, transform=data_transforms)
 train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)
 # Create test dataset and loader

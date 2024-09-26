@@ -2,6 +2,7 @@ import numpy as np
 import torch
 from sklearn.metrics import jaccard_score
 from torch import nn
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader
 from torchvision.transforms import transforms
 from Data.dataloader import InlineLoader
@@ -20,6 +21,14 @@ data_transforms_test = transforms.Compose([
 train_data = np.load('/home/zoe/GhassanGT Dropbox/Zoe Fowler/Zoe/InSync/BIGandDATA/Seismic/data/train/train_seismic.npy')
 train = (train_data - train_data.min()) / (train_data.max() - train_data.min())
 train_labels = np.load('/home/zoe/GhassanGT Dropbox/Zoe Fowler/Zoe/InSync/BIGandDATA/Seismic/data/train/train_labels.npy')
+# Determine validation sets
+valid_1_data = train[:50, :-50, :]
+valid_2_data = train[:, -50:, :]
+train = train[50:, :-50, :]
+train_labels = train_labels[50:, :-50, :]
+valid_1_labels = train_labels[:50, :-50, :]
+valid_2_labels = train_labels[:, -50:, :]
+# Create datasets and loaders for train and validations
 train_dataset = InlineLoader(seismic_cube=train, label_cube=train_labels, inline_inds=list(np.arange(0, train.shape[1])), train_status=True, transform=data_transforms)
 train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)
 # Create test dataset and loader
@@ -37,11 +46,11 @@ test_loader2 = DataLoader(test_dataset2, batch_size=1, shuffle=False)
 
 # Params
 device = 'cuda'
-epochs = 20
-lr = 0.001
+epochs = 60
 model = FaciesSegNet(n_class=6).to(device)
 model = model.to(device)
-optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
+optimizer = torch.optim.Adam(model.parameters())
+scheduler = ReduceLROnPlateau(optimizer, 'min', factor=0.75)
 criterion1 = nn.CrossEntropyLoss().to(device)
 criterion2 = nn.MSELoss().to(device)
 
@@ -53,18 +62,17 @@ for ep in range(epochs):
         images, labels = images.to(device).type(torch.float), labels.to(device).type(torch.long)
         if batch_idx == 0:
             print('Train images: ', images.shape)
-        output = model(images)['out']  #
+        output, reconstruct = model(images)  #
         optimizer.zero_grad()
-        loss = criterion1(output, labels)
-        # output, reconstruct = model(images)  #
-        # optimizer.zero_grad()
-        # seg_loss = criterion1(output, labels)
-        # reconstruction_loss = criterion2(reconstruct, images)
-        # loss = seg_loss + reconstruction_loss
+        seg_loss = criterion1(output, labels)
+        reconstruction_loss = criterion2(reconstruct, images)
+        loss = seg_loss + reconstruction_loss
         loss.backward()
         optimizer.step()
         batch_loss.append(loss.item())
     epoch_loss.append(sum(batch_loss) / len(batch_loss))
+    # Validate
+
     print('Train loss for epoch: ', sum(batch_loss) / len(batch_loss))
 
 # inference
