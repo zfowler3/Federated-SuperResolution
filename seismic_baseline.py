@@ -33,6 +33,9 @@ train_labels = train_labels[50:, :-50, :]
 # Dataset - train + valid
 train_dataset = InlineLoader(seismic_cube=train, label_cube=train_labels, inline_inds=list(np.arange(0, train.shape[1])), train_status=True, transform=data_transforms)
 train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)
+valid_dataset_1 = InlineLoader(seismic_cube=valid_1_data, label_cube=valid_1_labels, inline_inds=list(np.arange(0, valid_1_data.shape[1])), train_status=False, transform=data_transforms)
+valid_loader_1 = DataLoader(valid_dataset_1, batch_size=2, shuffle=True)
+
 # Create test dataset and loader
 test_data = np.load('/home/zoe/GhassanGT Dropbox/Zoe Fowler/Zoe/InSync/BIGandDATA/Seismic/data/test_once/test2_seismic.npy')
 test_labels = np.load('/home/zoe/GhassanGT Dropbox/Zoe Fowler/Zoe/InSync/BIGandDATA/Seismic/data/test_once/test2_labels.npy')
@@ -50,13 +53,13 @@ test_loader2 = DataLoader(test_dataset2, batch_size=1, shuffle=False)
 device = 'cuda'
 epochs = 20
 lr = 0.001
-seg_model = FaciesSegNet(n_class=6)
-# load in pretrained weights
-
-# freeze seg_model
-for param in seg_model.parameters():
-    param.requires_grad = False
-seg_model = seg_model.to(device)
+# seg_model = FaciesSegNet(n_class=6)
+# # load in pretrained weights
+#
+# # freeze seg_model
+# for param in seg_model.parameters():
+#     param.requires_grad = False
+# seg_model = seg_model.to(device)
 # For SR model
 model = UNet(feature_scale=4)
 model = model.to(device)
@@ -66,7 +69,7 @@ criterion2 = nn.MSELoss().to(device)
 
 # train
 epoch_loss = []
-alpha = 0.9
+alpha = 1
 for ep in range(epochs):
     batch_loss = []
     for batch_idx, (images, labels, idx) in enumerate(train_loader):
@@ -79,10 +82,11 @@ for ep in range(epochs):
         loss_sr = alpha*criterion2(output, images)
         # Cross-entropy loss; try to get correct segmentation
         # Pass in SR img into FaciesSegNet
-        output_segmentation = seg_model(copy.deepcopy(output))
-        loss_ce = (1-alpha)*criterion1(output_segmentation, labels)
+        #output_segmentation = seg_model(copy.deepcopy(output))
+        #loss_ce = (1-alpha)*criterion1(output_segmentation, labels)
         # Combined loss
-        loss = loss_sr + loss_ce
+        #loss = loss_sr + loss_ce
+        loss = loss_sr
         loss.backward()
         optimizer.step()
         batch_loss.append(loss.item())
