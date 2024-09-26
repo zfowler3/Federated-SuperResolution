@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+from matplotlib import pyplot as plt
 from sklearn.metrics import jaccard_score
 from torch import nn
 from torch.optim.lr_scheduler import ReduceLROnPlateau
@@ -24,7 +25,8 @@ train_labels = np.load('/home/zoe/GhassanGT Dropbox/Zoe Fowler/Zoe/InSync/BIGand
 # Determine validation sets
 valid_1_data = train[:50, :-50, :]
 valid_2_data = train[:, -50:, :]
-train = train[50:, :-50, :]
+x = train[50:, :-50, :]
+train = np.copy(x)
 valid_1_labels = train_labels[:50, :-50, :]
 valid_2_labels = train_labels[:, -50:, :]
 train_labels = train_labels[50:, :-50, :]
@@ -62,6 +64,9 @@ for ep in range(epochs):
         images, labels = images.to(device).type(torch.float), labels.to(device).type(torch.long)
         if batch_idx == 0:
             print('Train images: ', images.shape)
+            testing = images[0]
+            plt.imshow(testing[:, 0, :].T)
+            plt.savefig('/home/zoe/ground_truth.png')
         output, reconstruct = model(images)  #
         optimizer.zero_grad()
         seg_loss = criterion1(output, labels)

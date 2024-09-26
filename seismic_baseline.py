@@ -26,13 +26,14 @@ train_labels = np.load('/home/zoe/GhassanGT Dropbox/Zoe Fowler/Zoe/InSync/BIGand
 # Determine validation sets
 valid_1_data = train[:50, :-50, :]
 valid_2_data = train[:, -50:, :]
-train = train[50:, :-50, :]
+x = train[50:, :-50, :]
+train = np.copy(x)
 valid_1_labels = train_labels[:50, :-50, :]
 valid_2_labels = train_labels[:, -50:, :]
 train_labels = train_labels[50:, :-50, :]
 # Dataset - train + valid
 train_dataset = InlineLoader(seismic_cube=train, label_cube=train_labels, inline_inds=list(np.arange(0, train.shape[1])), train_status=True, transform=data_transforms)
-train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)
+train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True)
 valid_dataset_1 = InlineLoader(seismic_cube=valid_1_data, label_cube=valid_1_labels, inline_inds=list(np.arange(0, valid_1_data.shape[1])), train_status=False, transform=data_transforms)
 val_batch_size = 2
 valid_loader_1 = DataLoader(valid_dataset_1, batch_size=val_batch_size, shuffle=True)
@@ -63,7 +64,7 @@ lr = 0.001
 #     param.requires_grad = False
 # seg_model = seg_model.to(device)
 # For SR model
-model = UNet(feature_scale=4)
+model = UNet(feature_scale=8)
 model = model.to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
 criterion1 = nn.CrossEntropyLoss().to(device)
@@ -80,9 +81,20 @@ for ep in range(epochs):
     model.train(True)
     for batch_idx, (images, labels, idx) in enumerate(train_loader):
         images, labels = images.to(device).type(torch.float), labels.to(device).type(torch.long)
+        output = model(images)
+
         if batch_idx == 0:
             print('Train images: ', images.shape)
-        output = model(images)
+            print('Output shape: ', output.shape)
+            testing = images[0].cpu().numpy().squeeze()
+            plt.imshow(testing.T)
+            plt.savefig('/home/zoe/ground_truth.png')
+            plt.clf()
+            output_ex = output[0].detach().cpu().numpy().squeeze()
+            plt.imshow(output_ex.T)
+            plt.savefig('/home/zoe/output.png')
+            plt.clf()
+
         optimizer.zero_grad()
         # Super resolution loss; between output and ground-truth img
         loss_sr = alpha*criterion2(output, images)
