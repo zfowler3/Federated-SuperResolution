@@ -2,6 +2,17 @@ from torch import nn
 from torchvision.transforms import transforms
 # https://github.com/quocviethere/unet-super-resolution/blob/main/model.py
 
+class FirstFeature(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(FirstFeature, self).__init__()
+        self.conv = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, 1, 1, 0, bias=False),
+            nn.LeakyReLU()
+        )
+
+    def forward(self, x):
+        return self.conv(x)
+
 class unetConv2d(nn.Module):
     def __init__(self, in_size, out_size):
         super(unetConv2d, self).__init__()
@@ -72,7 +83,7 @@ class Unet_Modified(nn.Module):
                                              antialias=True)
 
         self.in_conv1 = FirstFeature(n_channels, 64)
-        self.in_conv2 = ConvBlock(64, 64)
+        self.in_conv2 = unetConv2d(64, 64)
 
         self.enc_1 = Encoder(64, 128)
         self.enc_2 = Encoder(128, 256)
