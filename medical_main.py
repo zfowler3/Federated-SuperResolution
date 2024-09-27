@@ -1,6 +1,5 @@
 import copy
-
-import numpy as np
+import os
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
@@ -14,6 +13,9 @@ from Train.train_one_epoch import train_epoch, eval_epoch
 # Define datasets
 l = 28
 scale = int(224 / 28)
+folder = '/home/zoe/GhassanGT Dropbox/Zoe Fowler/Zoe/InSync/PhDResearch/Code/Federated-SuperResolution/Saved/pneumonia/'
+if not os.path.exists(folder):
+    os.makedirs(folder)
 
 train_dataset = MedMNISTDataset(mode='train', low_size=l)
 valid_dataset = MedMNISTDataset(mode='val', low_size=l)
@@ -61,5 +63,9 @@ print('Training complete.')
 print('Best validation PSNR: {}'.format(best_psnr))
 print('Begin testing best model on test set.')
 
+test_loss, test_psnr = eval_epoch(data_loader=test_loader, model=best_model, device=device, criterion=criterion)
+print('Test set PSNR: ', test_psnr)
 
+# Save off best model
+torch.save(best_model.state_dict(), folder + 'best_model_' + str(scale) + '.pth')
 
