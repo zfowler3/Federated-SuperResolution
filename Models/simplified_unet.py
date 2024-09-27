@@ -1,3 +1,4 @@
+import torch
 from torch import nn
 from torchvision.transforms import transforms
 # https://github.com/quocviethere/unet-super-resolution/blob/main/model.py
@@ -52,11 +53,11 @@ class Decoder(nn.Module):
                                 nn.BatchNorm2d(out_channels),
                                 nn.LeakyReLU(),
                                 )
-        self.conv = unetConv2d(out_channels * 2, out_channels)
+        self.conv = unetConv2d(in_channels, out_channels)
 
-    def forward(self, x):
+    def forward(self, x, skip):
         x = self.up(x)
-        #x = torch.concat([x, skip], dim=1)
+        x = torch.concat([x, skip], dim=1)
         x = self.conv_block(x)
         return x
 
@@ -107,10 +108,10 @@ class Unet_Modified(nn.Module):
         x4 = self.enc_3(x3)
         x5 = self.enc_4(x4)
 
-        x = self.dec_1(x5)
-        x = self.dec_2(x)
-        x = self.dec_3(x)
-        x = self.dec_4(x)
+        x = self.dec_1(x5, x4)
+        x = self.dec_2(x, x3)
+        x = self.dec_3(x, x2)
+        x = self.dec_4(x, x1)
 
         x = self.out_conv(x)
         return x
