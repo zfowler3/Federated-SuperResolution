@@ -55,3 +55,11 @@ for e in range(epochs):
             print('Early stopping.')
             break
 
+#####################################################
+print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+print('Training complete.')
+print('Best validation PSNR: {}'.format(best_psnr))
+print('Begin testing best model on test set.')
+
+
+
