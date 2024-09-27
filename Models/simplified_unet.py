@@ -37,6 +37,30 @@ class Encoder(nn.Module):
 
         return outputs
 
+class Decoder(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(Decoder, self).__init__()
+        # self.conv = nn.Sequential(
+        #     nn.UpsamplingBilinear2d(scale_factor=2),
+        #     nn.Conv2d(in_channels, out_channels, 1, 1, 0, bias=False),
+        #     nn.BatchNorm2d(out_channels),
+        #     nn.LeakyReLU(),
+        # )
+        # self.conv_block = ConvBlock(in_channels, out_channels)
+
+        self.up = nn.Sequential(nn.Upsample(scale_factor=2, mode='bilinear'),
+                                nn.Conv2d(in_channels, out_channels, 3, 1, 0, bias=False),
+                                nn.BatchNorm2d(out_channels),
+                                nn.LeakyReLU(),
+                                )
+        self.conv = unetConv2d(out_channels * 2, out_channels)
+
+    def forward(self, x):
+        x = self.up(x)
+        #x = torch.concat([x, skip], dim=1)
+        x = self.conv_block(x)
+        return x
+
 class FinalOutput(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(FinalOutput, self).__init__()
@@ -50,14 +74,15 @@ class FinalOutput(nn.Module):
 
 class Unet_Modified(nn.Module):
     def __init__(
-            self, n_channels=3, n_classes=3
+            self, n_channels=1, n_classes=1
     ):
         super(Unet_Modified, self).__init__()
 
         self.n_channels = n_channels
         self.n_classes = n_classes
-        self.resize_fnc = transforms.Resize((LOW_IMG_HEIGHT*4, LOW_IMG_HEIGHT*4),
-                                             antialias=True)
+        # #self.resize_fnc = transforms.Resize((LOW_IMG_HEIGHT*4, LOW_IMG_HEIGHT*4),
+        #                                      antialias=True)
+
         self.in_conv1 = FirstFeature(n_channels, 64)
         self.in_conv2 = ConvBlock(64, 64)
 
@@ -74,7 +99,7 @@ class Unet_Modified(nn.Module):
         self.out_conv = FinalOutput(64, n_classes)
 
     def forward(self, x):
-        x = self.resize_fnc(x)
+        #x = self.resize_fnc(x)
         x = self.in_conv1(x)
         x1 = self.in_conv2(x)
 
