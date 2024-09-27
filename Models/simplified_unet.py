@@ -1,5 +1,29 @@
 from torch import nn
 
+class unetConv2d(nn.Module):
+    def __init__(self, in_size, out_size):
+        super(unetConv2d, self).__init__()
+        # self.conv1 = nn.Sequential(
+        #     conv(in_size, out_size, 3),
+        #     nn.ReLU()
+        # )
+        # self.conv2 = nn.Sequential(
+        #     conv(out_size, out_size, 3),
+        #     nn.ReLU()
+        # )
+        self.conv = nn.Sequential(
+            nn.Conv2d(in_size, out_size, 3, 1, 1, bias=False),
+            nn.BatchNorm2d(out_size),
+            nn.LeakyReLU(inplace=True),
+            nn.Conv2d(out_size, out_size, 3, 1, 1, bias=False),
+            nn.BatchNorm2d(out_size),
+            nn.LeakyReLU(inplace=True),
+        )
+
+    def forward(self, inputs):
+        outputs = self.conv(inputs)
+        return outputs
+
 class Encoder(nn.Module):
     def __init__(self, in_size, out_size):
         super(Encoder, self).__init__()
