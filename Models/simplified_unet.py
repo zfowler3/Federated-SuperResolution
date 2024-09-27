@@ -85,35 +85,35 @@ class Unet_Modified(nn.Module):
         self.resize_fnc = transforms.Resize((low_size*scale, low_size*scale),
                                              antialias=True)
 
-        # self.in_conv1 = FirstFeature(n_channels, 64)
-        # self.in_conv2 = unetConv2d(64, 64)
+        self.in_conv1 = FirstFeature(n_channels, 64)
+        self.in_conv2 = unetConv2d(64, 64)
+
+        self.enc_1 = Encoder(64, 128)
+        self.enc_2 = Encoder(128, 256)
+        self.enc_3 = Encoder(256, 512)
+        self.enc_4 = Encoder(512, 1024)
+
+        self.dec_1 = Decoder(1024, 512)
+        self.dec_2 = Decoder(512, 256)
+        self.dec_3 = Decoder(256, 128)
+        self.dec_4 = Decoder(128, 64)
+
+        self.out_conv = FinalOutput(64, n_classes)
+
+        # self.in_conv1 = FirstFeature(n_channels, 8)
+        # self.in_conv2 = unetConv2d(8, 8)
         #
-        # self.enc_1 = Encoder(64, 128)
-        # self.enc_2 = Encoder(128, 256)
-        # self.enc_3 = Encoder(256, 512)
-        # self.enc_4 = Encoder(512, 1024)
+        # self.enc_1 = Encoder(8, 16)
+        # self.enc_2 = Encoder(16, 32)
+        # self.enc_3 = Encoder(32, 64)
+        # self.enc_4 = Encoder(64, 128)
         #
-        # self.dec_1 = Decoder(1024, 512)
-        # self.dec_2 = Decoder(512, 256)
-        # self.dec_3 = Decoder(256, 128)
-        # self.dec_4 = Decoder(128, 64)
+        # self.dec_1 = Decoder(128, 64)
+        # self.dec_2 = Decoder(64, 32)
+        # self.dec_3 = Decoder(32, 16)
+        # self.dec_4 = Decoder(16, 8)
         #
-        # self.out_conv = FinalOutput(64, n_classes)
-
-        self.in_conv1 = FirstFeature(n_channels, 8)
-        self.in_conv2 = unetConv2d(8, 8)
-
-        self.enc_1 = Encoder(8, 16)
-        self.enc_2 = Encoder(16, 32)
-        self.enc_3 = Encoder(32, 64)
-        self.enc_4 = Encoder(64, 128)
-
-        self.dec_1 = Decoder(128, 64)
-        self.dec_2 = Decoder(64, 32)
-        self.dec_3 = Decoder(32, 16)
-        self.dec_4 = Decoder(16, 8)
-
-        self.out_conv = FinalOutput(8, n_classes)
+        # self.out_conv = FinalOutput(8, n_classes)
 
     def forward(self, x):
         x = self.resize_fnc(x)

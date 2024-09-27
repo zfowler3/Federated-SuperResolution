@@ -22,7 +22,7 @@ valid_dataset = MedMNISTDataset(mode='val', low_size=l)
 test_dataset = MedMNISTDataset(mode='test', low_size=l)
 
 # Define dataloaders
-train_loader = DataLoader(train_dataset, batch_size=28, shuffle=True)
+train_loader = DataLoader(train_dataset, batch_size=10, shuffle=True)
 valid_loader = DataLoader(valid_dataset, batch_size=1, shuffle=False)
 test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 
