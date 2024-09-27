@@ -8,6 +8,10 @@ def train_epoch(data_loader, model, criterion, optimizer, device):
         gt_image = gt_image.to(device)
         input = input.to(device)
         output = model(input)
+        if i == 0:
+            print('Train img input: ', input.shape)
+            print('Output shape: ', output.shape)
+            print('GT shape: ', gt_image.shape)
         optimizer.zero_grad()
         loss = criterion(output, gt_image)
         loss.backward()

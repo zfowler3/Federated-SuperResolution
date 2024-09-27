@@ -49,23 +49,25 @@ class Decoder(nn.Module):
         super(Decoder, self).__init__()
 
         self.up = nn.Sequential(nn.Upsample(scale_factor=2, mode='bilinear'),
-                                nn.Conv2d(in_channels, out_channels, 3, 1, 0, bias=False),
-                                nn.BatchNorm2d(out_channels),
+                                nn.Conv2d(in_channels, out_channels*2, 1, 1, 0, bias=False),
+                                nn.BatchNorm2d(out_channels*2),
                                 nn.LeakyReLU(),
                                 )
-        self.conv = unetConv2d(in_channels, out_channels)
+        self.conv = unetConv2d(out_channels*2, out_channels)
 
-    def forward(self, x, skip):
+    def forward(self, x):
+        #print(x.shape)
         x = self.up(x)
-        x = torch.concat([x, skip], dim=1)
-        x = self.conv_block(x)
+        #print(x.shape)
+        #x = torch.concat([x, skip], dim=1)
+        x = self.conv(x)
         return x
 
 class FinalOutput(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(FinalOutput, self).__init__()
         self.conv = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, 1, 1, 0, bias=False),
+            nn.Conv2d(in_channels, out_channels, 1, stride=1, padding=0, bias=False),
             nn.Tanh()
         )
 
@@ -83,23 +85,39 @@ class Unet_Modified(nn.Module):
         self.resize_fnc = transforms.Resize((low_size*scale, low_size*scale),
                                              antialias=True)
 
-        self.in_conv1 = FirstFeature(n_channels, 64)
-        self.in_conv2 = unetConv2d(64, 64)
+        # self.in_conv1 = FirstFeature(n_channels, 64)
+        # self.in_conv2 = unetConv2d(64, 64)
+        #
+        # self.enc_1 = Encoder(64, 128)
+        # self.enc_2 = Encoder(128, 256)
+        # self.enc_3 = Encoder(256, 512)
+        # self.enc_4 = Encoder(512, 1024)
+        #
+        # self.dec_1 = Decoder(1024, 512)
+        # self.dec_2 = Decoder(512, 256)
+        # self.dec_3 = Decoder(256, 128)
+        # self.dec_4 = Decoder(128, 64)
+        #
+        # self.out_conv = FinalOutput(64, n_classes)
 
-        self.enc_1 = Encoder(64, 128)
-        self.enc_2 = Encoder(128, 256)
-        self.enc_3 = Encoder(256, 512)
-        self.enc_4 = Encoder(512, 1024)
+        self.in_conv1 = FirstFeature(n_channels, 8)
+        self.in_conv2 = unetConv2d(8, 8)
 
-        self.dec_1 = Decoder(1024, 512)
-        self.dec_2 = Decoder(512, 256)
-        self.dec_3 = Decoder(256, 128)
-        self.dec_4 = Decoder(128, 64)
+        self.enc_1 = Encoder(8, 16)
+        self.enc_2 = Encoder(16, 32)
+        self.enc_3 = Encoder(32, 64)
+        self.enc_4 = Encoder(64, 128)
 
-        self.out_conv = FinalOutput(64, n_classes)
+        self.dec_1 = Decoder(128, 64)
+        self.dec_2 = Decoder(64, 32)
+        self.dec_3 = Decoder(32, 16)
+        self.dec_4 = Decoder(16, 8)
+
+        self.out_conv = FinalOutput(8, n_classes)
 
     def forward(self, x):
         x = self.resize_fnc(x)
+        #print(x.shape)
         x = self.in_conv1(x)
         x1 = self.in_conv2(x)
 
@@ -107,11 +125,14 @@ class Unet_Modified(nn.Module):
         x3 = self.enc_2(x2)
         x4 = self.enc_3(x3)
         x5 = self.enc_4(x4)
-
-        x = self.dec_1(x5, x4)
-        x = self.dec_2(x, x3)
-        x = self.dec_3(x, x2)
-        x = self.dec_4(x, x1)
-
+        #print(x5.shape)
+        # x = self.dec_1(x5, x4)
+        # x = self.dec_2(x, x3)
+        # x = self.dec_3(x, x2)
+        # x = self.dec_4(x, x1)
+        x = self.dec_1(x5)
+        x = self.dec_2(x)
+        x = self.dec_3(x)
+        x = self.dec_4(x)
         x = self.out_conv(x)
         return x
