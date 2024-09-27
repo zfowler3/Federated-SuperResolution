@@ -125,7 +125,7 @@ class Unet_Modified(nn.Module):
         x3 = self.enc_2(x2)
         x4 = self.enc_3(x3)
         x5 = self.enc_4(x4)
-        #print(x5.shape)
+        print(x5.shape)
         # x = self.dec_1(x5, x4)
         # x = self.dec_2(x, x3)
         # x = self.dec_3(x, x2)

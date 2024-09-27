@@ -4,7 +4,7 @@ import torch.nn as nn
 def default_conv(in_channels, out_channels, kernel_size, bias=True):
     return nn.Conv2d(
         in_channels, out_channels, kernel_size,
-        padding=(kernel_size//2), bias=bias)
+        padding=1, bias=bias)
 
 class BasicBlock(nn.Sequential):
     def __init__(
@@ -43,7 +43,7 @@ class ResBlock(nn.Module):
         return res
 
 class Upsampler(nn.Sequential):
-    def __init__(self, conv, scale, n_feats, bn=False, act=False, bias=True):
+    def __init__(self, conv, scale, n_feats, bn=False, act=False, bias=False):
 
         m = []
         if (scale & (scale - 1)) == 0:    # Is scale = 2^n?

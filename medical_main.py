@@ -5,6 +5,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 from Data.medmnist_loader import MedMNISTDataset
 from Models.simplified_unet import Unet_Modified
+from Models.simplified_unet_modified import Unet_
 from Train.train_one_epoch import train_epoch, eval_epoch
 
 #######
@@ -31,7 +32,7 @@ test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 epochs = 60
 lr = 0.001
 device = 'cuda'
-model = Unet_Modified(low_size=l, scale=scale)
+model = Unet_(scale=scale)
 model = model.to(device)
 optimizer = torch.optim.AdamW(model.parameters(), lr=lr, betas=[0.5,0.999])
 criterion = nn.L1Loss().to(device)
