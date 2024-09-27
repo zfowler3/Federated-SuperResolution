@@ -25,7 +25,7 @@ class MedMNISTDataset(Dataset):
 
         except FileNotFoundError:
 
-            img_dir = ('/').join((root.split('/'))[:-1])
+            img_dir = root
             data = PneumoniaMNIST(split=mode, download=True, root=img_dir, size=224)
             x = data.imgs
             y = data.labels
