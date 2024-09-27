@@ -45,7 +45,7 @@ class MedMNISTDataset(Dataset):
         input_img = self.resize(img)
 
         # to get 'baseline:' imput_img.resize(size=(), resample=Image.BICUBIC)
-        return img, input_img, index
+        return img, input_img
 
     def __len__(self) -> int:
         """Return the len of the dataset."""
