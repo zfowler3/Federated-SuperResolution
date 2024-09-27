@@ -1,8 +1,10 @@
 import numpy as np
 import torch
+from torch import nn
 from torch.utils.data import DataLoader
 from Data.medmnist_loader import MedMNISTDataset
 from Models.simplified_unet import Unet_Modified
+from Train.train_one_epoch import train_epoch, eval_epoch
 
 #######
 # PneumoniaMNIST
@@ -17,8 +19,8 @@ test_dataset = MedMNISTDataset(mode='test', low_size=l)
 
 # Define dataloaders
 train_loader = DataLoader(train_dataset, batch_size=28, shuffle=True)
-valid_loader = DataLoader(valid_dataset, batch_size=8, shuffle=False)
-test_loader = DataLoader(test_dataset, batch_size=8, shuffle=False)
+valid_loader = DataLoader(valid_dataset, batch_size=1, shuffle=False)
+test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 
 #####################################################################
 # Define training params and model
@@ -28,3 +30,12 @@ device = 'cuda'
 model = Unet_Modified(low_size=l, scale=scale)
 model = model.to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
+criterion = nn.MSELoss().to(device)
+
+for e in range(epochs):
+    epoch_loss = []
+    # Train model
+    loss = train_epoch(data_loader=train_loader, model=model, optimizer=optimizer, device=device, criterion=criterion)
+    epoch_loss.append(loss)
+    # Eval on validation set
+    val_loss, val_psnr = eval_epoch(data_loader=valid_loader, model=model, device=device, criterion=criterion)

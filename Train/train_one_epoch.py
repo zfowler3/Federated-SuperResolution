@@ -7,6 +7,33 @@ def train_epoch(data_loader, model, criterion, optimizer, device):
     for i, (gt_image, input) in enumerate(data_loader):
         gt_image = gt_image.to(device)
         input = input.to(device)
+        output = model(input)
+        optimizer.zero_grad()
+        loss = criterion(output, gt_image)
+        loss.backward()
+        optimizer.step()
+        batch_loss.append(loss.item())
 
+    epoch_loss = sum(batch_loss) / len(batch_loss)
+    print('Train loss for current epoch: ', epoch_loss)
+    return epoch_loss
 
-    return
+def eval_epoch(data_loader, model, criterion, device):
+    model.eval()
+    count = 0
+    total_psnr = 0
+    loss = []
+
+    with torch.no_grad():
+        for i, (gt_image, input) in enumerate(data_loader):
+            gt_image = gt_image.to(device)
+            input = input.to(device)
+            output = model(input)
+            loss_ = criterion(output, gt_image)
+            loss.append(loss_.item())
+            count += 1
+            total_psnr += peak_signal_noise_ratio(output, gt_image)
+
+    epoch_psnr = total_psnr / count
+    epoch_loss = sum(loss) / len(loss)
+    return epoch_loss, epoch_psnr
