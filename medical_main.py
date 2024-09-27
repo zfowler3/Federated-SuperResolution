@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 import torch
 from torch import nn
@@ -31,11 +33,25 @@ model = Unet_Modified(low_size=l, scale=scale)
 model = model.to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
 criterion = nn.MSELoss().to(device)
+best_psnr = 0
+count = 0
 
 for e in range(epochs):
+    print('---------------------------------')
+    print('Epoch {}/{}'.format(e, epochs))
     epoch_loss = []
     # Train model
     loss = train_epoch(data_loader=train_loader, model=model, optimizer=optimizer, device=device, criterion=criterion)
     epoch_loss.append(loss)
     # Eval on validation set
     val_loss, val_psnr = eval_epoch(data_loader=valid_loader, model=model, device=device, criterion=criterion)
+    print('Validation loss {}, Validation PSNR {}'.format(val_loss, val_psnr))
+    if val_psnr > best_psnr:
+        best_psnr = val_psnr
+        best_model = copy.deepcopy(model)
+    else:
+        count += 1
+        if count >= 10:
+            print('Early stopping.')
+            break
+
