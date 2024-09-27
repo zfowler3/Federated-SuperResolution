@@ -1,5 +1,6 @@
 from torcheval.metrics.functional import peak_signal_noise_ratio
 import torch
+import matplotlib.pyplot as plt
 
 def train_epoch(data_loader, model, criterion, optimizer, device):
     model.train()
@@ -11,7 +12,19 @@ def train_epoch(data_loader, model, criterion, optimizer, device):
         if i == 0:
             print('Train img input: ', input.shape)
             print('Output shape: ', output.shape)
+            o = output.detach().cpu().numpy()
+            og = input.detach().cpu().numpy()
+            plt.imshow(og[0].squeeze(), cmap='gray')
+            plt.savefig('./original.png')
+            plt.clf()
+            plt.imshow(o[0].squeeze(), cmap='gray')
+            plt.savefig('./outputted.png')
+            plt.clf()
             print('GT shape: ', gt_image.shape)
+            g = gt_image.detach().cpu().numpy()
+            plt.imshow(g[0].squeeze(), cmap='gray')
+            plt.savefig('./gt.png')
+            plt.clf()
         optimizer.zero_grad()
         loss = criterion(output, gt_image)
         loss.backward()
