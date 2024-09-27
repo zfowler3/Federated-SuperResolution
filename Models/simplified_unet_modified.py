@@ -2,6 +2,7 @@ import torch
 from torch import nn
 from Models import common
 
+# https://github.com/Mnster00/simplifiedUnetSR/blob/master/Unet/Umodel.py
 
 class FirstFeature(nn.Module):
     def __init__(self, in_channels, out_channels):
