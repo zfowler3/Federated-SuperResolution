@@ -33,8 +33,8 @@ lr = 0.001
 device = 'cuda'
 model = Unet_Modified(low_size=l, scale=scale)
 model = model.to(device)
-optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
-criterion = nn.MSELoss().to(device)
+optimizer = torch.optim.AdamW(model.parameters(), lr=lr, betas=[0.5,0.999])
+criterion = nn.L1Loss().to(device)
 best_psnr = 0
 count = 0
 
@@ -51,8 +51,12 @@ for e in range(epochs):
     if val_psnr > best_psnr:
         best_psnr = val_psnr
         best_model = copy.deepcopy(model)
+        count = 0
     else:
         count += 1
+        if count == 5:
+            lr /= 10
+            optimizer = torch.optim.AdamW(model.parameters(), lr=lr, betas=(0.5, 0.999))
         if count >= 10:
             print('Early stopping.')
             break
