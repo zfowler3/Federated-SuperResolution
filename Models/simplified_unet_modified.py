@@ -97,15 +97,16 @@ class Unet_(nn.Module):
         self.dec_2 = Decoder(512, 256)
         self.dec_3 = Decoder(256, 128)
         self.dec_4 = Decoder(128, 64)
+        self.dec_5 = Decoder(64, 32)
 
-        self.upend = common.Upsampler(common.default_conv, scale, features[0], act=False)
+        self.upend = common.Upsampler(common.default_conv, scale, 32, act=False)
 
         resblock = [common.ResBlock(
             common.default_conv, features[0], 3, act=nn.ReLU(True), bn=True, res_scale=1
             ) for _ in range(3)]
         self.resblock = nn.Sequential(*resblock)
 
-        self.out_conv = FinalOutput(features[0], n_classes)
+        self.out_conv = FinalOutput(32, n_classes)
 
     def forward(self, x):
         #x = self.resize_fnc(x)
@@ -125,6 +126,7 @@ class Unet_(nn.Module):
         x = self.dec_2(x)
         x = self.dec_3(x)
         x = self.dec_4(x)
+        x = self.dec_5(x)
         print('x: ', x.shape)
         x = self.upend(x)
         #x = self.upend(x)

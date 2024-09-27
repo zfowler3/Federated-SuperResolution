@@ -4,7 +4,7 @@ import torch.nn as nn
 def default_conv(in_channels, out_channels, kernel_size, bias=True):
     return nn.Conv2d(
         in_channels, out_channels, kernel_size,
-        padding=1, bias=bias)
+        padding=(kernel_size//2), bias=bias)
 
 class BasicBlock(nn.Sequential):
     def __init__(
