@@ -107,10 +107,10 @@ class Unet_Modified(nn.Module):
         x4 = self.enc_3(x3)
         x5 = self.enc_4(x4)
 
-        x = self.dec_1(x5, x4)
-        x = self.dec_2(x, x3)
-        x = self.dec_3(x, x2)
-        x = self.dec_4(x, x1)
+        x = self.dec_1(x5)
+        x = self.dec_2(x)
+        x = self.dec_3(x)
+        x = self.dec_4(x)
 
         x = self.out_conv(x)
         return x
