@@ -1,11 +1,6 @@
 import torch
 from torch import nn
-from torchvision.transforms import transforms
-
 from Models import common
-
-
-# https://github.com/quocviethere/unet-super-resolution/blob/main/model.py
 
 class FirstFeature(nn.Module):
     def __init__(self, in_channels, out_channels):
@@ -110,6 +105,11 @@ class Unet_(nn.Module):
 
         self.upend = common.Upsampler(common.default_conv, scale, features[0], act=False)
 
+        resblock = [common.ResBlock(
+            common.default_conv, features[0], 3, act=nn.ReLU(True), bn=True, res_scale=1
+            ) for _ in range(3)]
+        self.resblock = nn.Sequential(*resblock)
+
         self.out_conv = FinalOutput(features[0], n_classes)
 
     def forward(self, x):
@@ -130,5 +130,6 @@ class Unet_(nn.Module):
         x = self.dec_3(x, x2)
         x = self.dec_4(x, x1)
         x = self.upend(x)
+        x = self.resblock(x)
         x = self.out_conv(x)
         return x
