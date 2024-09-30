@@ -1,8 +1,43 @@
 import torch
 from torch import nn
 from Models import common
+import torch.nn.functional as F
+import numpy as np
 
 # https://github.com/Mnster00/simplifiedUnetSR/blob/master/Unet/Umodel.py
+
+def pad_to(x):
+    h, w = x.shape[-2:]
+
+    arr = 2**np.arange(0, 12)
+    vals_h = arr[(arr - h) > 0]
+    pad_h = vals_h[np.argmin(vals_h)]
+    vals_w = arr[(arr - w) > 0]
+    pad_w = vals_w[np.argmin(vals_w)]
+    stride_h = pad_h - h
+    stride_w = pad_w - w
+
+    if h % stride_h > 0:
+        new_h = h + stride_h - h % stride_h
+    else:
+        new_h = h
+    if w % stride_w > 0:
+        new_w = w + stride_w - w % stride_w
+    else:
+        new_w = w
+    lh, uh = int((new_h-h) / 2), int(new_h-h) - int((new_h-h) / 2)
+    lw, uw = int((new_w-w) / 2), int(new_w-w) - int((new_w-w) / 2)
+    pads = (lw, uw, lh, uh)
+    out = F.pad(x, pads, "reflect", 0)
+
+    return out, pads
+
+def unpad(x, pad):
+    if pad[2]+pad[3] > 0:
+        x = x[:,:,pad[2]:-pad[3],:]
+    if pad[0]+pad[1] > 0:
+        x = x[:,:,:,pad[0]:-pad[1]]
+    return x
 
 class FirstFeature(nn.Module):
     def __init__(self, in_channels, out_channels):
@@ -77,7 +112,7 @@ class FinalOutput(nn.Module):
 
 class Unet_(nn.Module):
     def __init__(
-            self, n_channels=1, n_classes=1, low_size=28, scale=2
+            self, n_channels=1, n_classes=1, scale=2
     ):
         super(Unet_, self).__init__()
 
@@ -85,8 +120,8 @@ class Unet_(nn.Module):
         self.n_classes = n_classes
 
         features = [64, 128, 256, 512, 1024]
-        self.in_conv1 = FirstFeature(n_channels, 64)
-        self.in_conv2 = unetConv2d(64, 64)
+        #self.in_conv1 = FirstFeature(n_channels, 64)
+        self.in_conv2 = unetConv2d(n_channels, 64)
 
         self.enc_1 = Encoder(64, 128)
         self.enc_2 = Encoder(128, 256)
@@ -108,9 +143,10 @@ class Unet_(nn.Module):
         self.out_conv = FinalOutput(64, n_classes)
 
     def forward(self, x):
-        #x = self.resize_fnc(x)
-        print('begin: ', x.shape)
-        x = self.in_conv1(x)
+        print('Before pad: ', x.shape)
+        x, pads = pad_to(x)
+        print('After pad: ', x.shape)
+        #x = self.in_conv1(x)
         x1 = self.in_conv2(x)
         x2 = self.enc_1(x1)
         x3 = self.enc_2(x2)
