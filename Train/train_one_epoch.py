@@ -3,10 +3,10 @@ import torch
 import matplotlib.pyplot as plt
 import os
 
-def train_epoch(data_loader, model, criterion, optimizer, device, epoch, dataset):
+def train_epoch(data_loader, model, criterion, optimizer, device, epoch, dataset, model_type='resnet'):
     model.train()
     batch_loss = []
-    save_dir = './examples/' + dataset + '/'
+    save_dir = './examples/' + dataset + '/' + model_type + '/'
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 

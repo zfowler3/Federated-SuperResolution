@@ -53,7 +53,7 @@ for e in range(epochs):
     epoch_loss = []
     # Train model
     loss = train_epoch(data_loader=train_loader, model=model, optimizer=optimizer, device=device, criterion=criterion, epoch=e,
-                       dataset='pneumonia')
+                       dataset='pneumonia', model_type=t)
     epoch_loss.append(loss)
     # Eval on validation set
     val_loss, val_psnr = eval_epoch(data_loader=valid_loader, model=model, device=device, criterion=criterion)
