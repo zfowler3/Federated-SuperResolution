@@ -35,6 +35,12 @@ lr = 0.001
 device = 'cuda'
 #model = Unet_(scale=scale)
 model = SRResNet(scaling_factor=scale)
+t = 'resnet'
+if t == 'unet':
+    relax = 2
+else:
+    relax = 5
+
 model = model.to(device)
 optimizer = torch.optim.AdamW(model.parameters(), lr=lr, betas=[0.5,0.999])
 criterion = nn.L1Loss().to(device)
@@ -46,7 +52,8 @@ for e in range(epochs):
     print('Epoch {}/{}'.format(e, epochs))
     epoch_loss = []
     # Train model
-    loss = train_epoch(data_loader=train_loader, model=model, optimizer=optimizer, device=device, criterion=criterion)
+    loss = train_epoch(data_loader=train_loader, model=model, optimizer=optimizer, device=device, criterion=criterion, epoch=e,
+                       dataset='pneumonia')
     epoch_loss.append(loss)
     # Eval on validation set
     val_loss, val_psnr = eval_epoch(data_loader=valid_loader, model=model, device=device, criterion=criterion)
@@ -54,10 +61,12 @@ for e in range(epochs):
     if val_psnr > best_psnr:
         best_psnr = val_psnr
         best_model = copy.deepcopy(model)
+        # Save off best model
+        torch.save(best_model.state_dict(), folder + 'best_model_' + str(scale) + '_' + t + '.pth')
         count = 0
     else:
         count += 1
-        if count == 5:
+        if count == relax:
             lr /= 10
             optimizer = torch.optim.AdamW(model.parameters(), lr=lr, betas=(0.5, 0.999))
         if count >= 10:
@@ -72,7 +81,4 @@ print('Begin testing best model on test set.')
 
 test_loss, test_psnr = eval_epoch(data_loader=test_loader, model=best_model, device=device, criterion=criterion)
 print('Test set PSNR: ', test_psnr)
-
-# Save off best model
-torch.save(best_model.state_dict(), folder + 'best_model_' + str(scale) + '.pth')
 
