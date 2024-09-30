@@ -8,23 +8,16 @@ import numpy as np
 
 def pad_to(x):
     h, w = x.shape[-2:]
-
     arr = 2**np.arange(0, 12)
-    vals_h = arr[(arr - h) > 0]
+    vals_h = arr[(arr - h) >= 0]
     pad_h = vals_h[np.argmin(vals_h)]
-    vals_w = arr[(arr - w) > 0]
+    vals_w = arr[(arr - w) >= 0]
     pad_w = vals_w[np.argmin(vals_w)]
     stride_h = pad_h - h
     stride_w = pad_w - w
 
-    if h % stride_h > 0:
-        new_h = h + stride_h - h % stride_h
-    else:
-        new_h = h
-    if w % stride_w > 0:
-        new_w = w + stride_w - w % stride_w
-    else:
-        new_w = w
+    new_h = h + stride_h - h % stride_h
+    new_w = w + stride_w - w % stride_w
     lh, uh = int((new_h-h) / 2), int(new_h-h) - int((new_h-h) / 2)
     lw, uw = int((new_w-w) / 2), int(new_w-w) - int((new_w-w) / 2)
     pads = (lw, uw, lh, uh)
@@ -143,27 +136,17 @@ class Unet_(nn.Module):
         self.out_conv = FinalOutput(64, n_classes)
 
     def forward(self, x):
-        print('Before pad: ', x.shape)
         x, pads = pad_to(x)
-        print('After pad: ', x.shape)
-        #x = self.in_conv1(x)
         x1 = self.in_conv2(x)
         x2 = self.enc_1(x1)
         x3 = self.enc_2(x2)
         x4 = self.enc_3(x3)
         x5 = self.enc_4(x4)
-        print(x5.shape)
-        # x = self.dec_1(x5, x4)
-        # x = self.dec_2(x, x3)
-        # x = self.dec_3(x, x2)
-        # x = self.dec_4(x, x1)
         x = self.dec_1(x5)
         x = self.dec_2(x)
         x = self.dec_3(x)
         x = self.dec_4(x)
-        print('x: ', x.shape)
-        #x = self.u(x)
-        #print('now: ', x.shape)
+        x = unpad(x, pads)
         x = self.upend(x)
         x = self.resblock(x)
         x = self.out_conv(x)
