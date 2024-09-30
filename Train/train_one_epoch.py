@@ -19,7 +19,7 @@ def train_epoch(data_loader, model, criterion, optimizer, device, epoch, dataset
             print('Output shape: ', output.shape)
             o = output.detach().cpu().numpy()
             og = input.detach().cpu().numpy()
-            if epoch % 5 == 0:
+            if epoch % 2 == 0:
                 save_dir += 'epoch_' + str(epoch)
                 if not os.path.exists(save_dir):
                     os.makedirs(save_dir)
