@@ -84,7 +84,7 @@ class Decoder(nn.Module):
         #                         )
         # self.conv = unetConv2d(out_channels*2, out_channels)
         self.up = nn.Sequential(nn.Upsample(scale_factor=2, mode='bilinear'),
-                                nn.Conv2d(in_channels, out_channels, 3, 1, 0, bias=True),
+                                nn.Conv2d(in_channels, out_channels, 1, 1, 0, bias=True),
                                 nn.ReLU(),
                                 )
         self.conv = nn.Sequential(
