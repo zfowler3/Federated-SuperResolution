@@ -39,7 +39,7 @@ t = 'resnet'
 relax = 2
 
 model = model.to(device)
-optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
 criterion = nn.L1Loss().to(device)
 best_psnr = 0
 count = 0
@@ -65,7 +65,7 @@ for e in range(epochs):
         count += 1
         if count == relax:
             lr /= 10
-            optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+            optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
         if count >= 10:
             print('Early stopping.')
             break
