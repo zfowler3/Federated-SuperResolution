@@ -48,8 +48,6 @@ class Upsampler(nn.Sequential):
         m = []
         if (scale & (scale - 1)) == 0:    # Is scale = 2^n?
             for _ in range(int(math.log(scale, 2))):
-                #print('here')
-                #print(n_feats)
                 m.append(conv(n_feats, 4 * n_feats, 3, bias))
                 m.append(nn.PixelShuffle(2))
                 if bn:
@@ -61,7 +59,6 @@ class Upsampler(nn.Sequential):
             print(m)
 
         elif scale == 3:
-            #print('???')
             m.append(conv(n_feats, 9 * n_feats, 3, bias))
             m.append(nn.PixelShuffle(3))
             if bn:

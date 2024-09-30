@@ -77,26 +77,44 @@ class Decoder(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(Decoder, self).__init__()
 
+        # self.up = nn.Sequential(nn.Upsample(scale_factor=2, mode='bilinear'),
+        #                         nn.Conv2d(in_channels, out_channels*2, 1, 1, 0, bias=True),
+        #                         #nn.BatchNorm2d(out_channels*2),
+        #                         nn.ReLU(),
+        #                         )
+        # self.conv = unetConv2d(out_channels*2, out_channels)
         self.up = nn.Sequential(nn.Upsample(scale_factor=2, mode='bilinear'),
-                                nn.Conv2d(in_channels, out_channels*2, 1, 1, 0, bias=False),
-                                nn.BatchNorm2d(out_channels*2),
+                                nn.Conv2d(in_channels, out_channels, 3, 1, 0, bias=True),
                                 nn.ReLU(),
                                 )
-        self.conv = unetConv2d(out_channels*2, out_channels)
+        self.conv = nn.Sequential(
+            nn.Conv2d(out_channels*2, out_channels, 3, 1, 1, bias=True),
+            nn.ReLU(),
+            nn.Conv2d(out_channels, out_channels, 3, 1, 1, bias=True),
+            nn.ReLU(),
+        )
 
-    def forward(self, x):
-        x = self.up(x)
-        #print(x.shape)
-        #x = torch.concat([x, skip], dim=1)
-        x = self.conv(x)
+    def forward(self, inputs1, inputs2):
+        in1_up = self.up(inputs1)
 
-        return x
+        if (inputs2.size(2) != in1_up.size(2)) or (inputs2.size(3) != in1_up.size(3)):
+            diff2 = (inputs2.size(2) - in1_up.size(2)) // 2
+            diff3 = (inputs2.size(3) - in1_up.size(3)) // 2
+            inputs2_ = inputs2[:, :, diff2: diff2 + in1_up.size(2), diff3: diff3 + in1_up.size(3)]
+        else:
+            inputs2_ = inputs2
+
+        x = torch.cat([in1_up, inputs2_], 1)
+
+        output = self.conv(x)
+
+        return output
 
 class FinalOutput(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(FinalOutput, self).__init__()
         self.conv = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, 1, stride=1, padding=0, bias=False),
+            nn.Conv2d(in_channels, out_channels, 1, stride=1, padding=0, bias=True),
             nn.Tanh()
         )
 
@@ -142,10 +160,10 @@ class Unet_(nn.Module):
         x3 = self.enc_2(x2)
         x4 = self.enc_3(x3)
         x5 = self.enc_4(x4)
-        x = self.dec_1(x5)
-        x = self.dec_2(x)
-        x = self.dec_3(x)
-        x = self.dec_4(x)
+        x = self.dec_1(x5, x4)
+        x = self.dec_2(x, x3)
+        x = self.dec_3(x, x2)
+        x = self.dec_4(x, x1)
         x = unpad(x, pads)
         x = self.upend(x)
         x = self.resblock(x)

@@ -126,22 +126,7 @@ class UNet(nn.Module):
         if self.concat_x:
             down4 = torch.cat([down4, downs[4]], 1)
 
-        if self.more_layers > 0:
-            prevs = [down4]
-            for kk, d in enumerate(self.more_downs):
-                out = d(prevs[-1])
-                if self.concat_x:
-                    out = torch.cat([out, downs[kk + 5]], 1)
-
-                prevs.append(out)
-
-            up_ = self.more_ups[-1](prevs[-1], prevs[-2])
-            for idx in range(self.more_layers - 1):
-                l = self.more_ups[self.more_layers - idx - 2]
-                up_ = l(up_, prevs[self.more_layers - idx - 2])
-
-        else:
-            up_ = down4
+        up_ = down4
 
         up4 = self.up4(up_, down3)
         up3 = self.up3(up4, down2)

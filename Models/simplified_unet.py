@@ -67,7 +67,7 @@ class FinalOutput(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(FinalOutput, self).__init__()
         self.conv = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, 1, stride=1, padding=0, bias=False),
+            nn.Conv2d(in_channels, out_channels, 1, stride=1, padding=0, bias=True),
             nn.Tanh()
         )
 
