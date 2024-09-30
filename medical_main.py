@@ -36,7 +36,7 @@ device = 'cuda'
 #model = Unet_(scale=scale)
 model = SRResNet(scaling_factor=scale)
 t = 'resnet'
-relax = 2
+relax = 3
 
 model = model.to(device)
 optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
