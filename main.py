@@ -16,11 +16,11 @@ def args_parser():
                         help="number of rounds of training")
     parser.add_argument('--num_users', type=int, default=10,
                         help="number of users: K")
-    parser.add_argument('--local_ep', type=int, default=10,
+    parser.add_argument('--local_ep', type=int, default=100,
                         help="the number of local epochs: E")
     parser.add_argument('--local_bs', type=int, default=4,
                         help="local batch size: B")
-    parser.add_argument('--lr', type=float, default=0.00015,
+    parser.add_argument('--lr', type=float, default=0.001,
                         help='learning rate')
     parser.add_argument('--seed', type=int, default=1, help='random seed')
     parser.add_argument('--date', type=str, default='09-25-24', help='Set date for experiments')
