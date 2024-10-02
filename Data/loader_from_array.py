@@ -14,7 +14,7 @@ class MedMNIST_Testing(Dataset):
 
         self.transform = transforms.Compose([
             transforms.ToTensor(),
-            transforms.Normalize(mean=[.5], std=[.5])
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
 
         labels = np.load('/media/zoe/ssd/pneumoniamnist_224/test_labels.npy')
@@ -26,6 +26,7 @@ class MedMNIST_Testing(Dataset):
         img = self.x[index]
 
         img = Image.fromarray(img)
+        img = img.convert('RGB')
 
         if self.transform:
             img = self.transform(img)
