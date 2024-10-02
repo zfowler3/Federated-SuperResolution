@@ -1,3 +1,4 @@
+import numpy as np
 from torcheval.metrics.functional import peak_signal_noise_ratio
 import torch
 import matplotlib.pyplot as plt
@@ -63,3 +64,26 @@ def eval_epoch(data_loader, model, criterion, device):
     epoch_psnr = total_psnr / count
     epoch_loss = sum(loss) / len(loss)
     return epoch_loss, epoch_psnr
+
+def eval_epoch_save(data_loader, model, criterion, device):
+    model.eval()
+    count = 0
+    total_psnr = 0
+    loss = []
+    saved_outputs = np.zeros(shape=(len(data_loader), 224, 224))
+
+    with torch.no_grad():
+        for i, (gt_image, input) in enumerate(data_loader):
+            gt_image = gt_image.to(device)
+            input = input.to(device)
+            output = model(input)
+            image_final = output.detach().cpu().numpy().squeeze()
+            saved_outputs[i] = image_final
+            loss_ = criterion(output, gt_image)
+            loss.append(loss_.item())
+            count += 1
+            total_psnr += peak_signal_noise_ratio(output, gt_image)
+
+    epoch_psnr = total_psnr / count
+    epoch_loss = sum(loss) / len(loss)
+    return epoch_loss, epoch_psnr, saved_outputs

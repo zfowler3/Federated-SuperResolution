@@ -13,8 +13,8 @@ from Train.train_one_epoch import train_epoch, eval_epoch
 # PneumoniaMNIST
 ######################################################################
 # Define datasets
-l = 28
-scale = int(224 / 28)
+l = 56
+scale = int(224 / 56)
 folder = '/home/zoe/GhassanGT Dropbox/Zoe Fowler/Zoe/InSync/PhDResearch/Code/Federated-SuperResolution/Saved/pneumonia/'
 if not os.path.exists(folder):
     os.makedirs(folder)
