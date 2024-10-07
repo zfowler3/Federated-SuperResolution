@@ -34,6 +34,7 @@ def create_clients_rand(data, num_clients):
     choice_tracker = []
     percentage_missing = [0.2, 0.4, 0.6, 0.8]
     choices = ['inline', 'crossline']
+    choices=['crossline']
     for c in range(num_clients):
         p = np.random.choice(percentage_missing, size=1)[0]
         choose = 1 - p
