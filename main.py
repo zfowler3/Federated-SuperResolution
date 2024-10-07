@@ -50,7 +50,7 @@ def main():
     C = args.num_users
 
     # Get dataset and groups
-    train_norm, test_norm, user_groups, test2_ = get_dataset_seismic(args)
+    train_norm, test_norm, user_groups, test2_norm = get_dataset_seismic(args)
     test_labels = np.load(args.data_path + 'test_once/test2_labels.npy')
     testlab2 = np.load(args.data_path + 'test_once/test1_labels.npy')
     # Set up dataloaders
@@ -59,7 +59,7 @@ def main():
     ])
     test_dataset = InlineLoader(test_norm, label_cube=test_labels, inline_inds=list(np.arange(0, test_norm.shape[1])),
                                 train_status=False, transform=data_transforms_test)
-    test2 = InlineLoader(test2_, testlab2, inline_inds=list(np.arange(0, test2_.shape[1])), train_status=False,
+    test2 = InlineLoader(test2_norm, testlab2, inline_inds=list(np.arange(0, test2_norm.shape[1])), train_status=False,
                          transform=data_transforms_test)
     test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
     test_loader2 = DataLoader(test2, batch_size=1, shuffle=False)
@@ -72,7 +72,10 @@ def main():
     if not os.path.exists(model_path):
         os.makedirs(model_path)
 
-
-
+    # Get models for each client
+    uploaded_models = {
+        i: {"model": None} for i in range(C)
+    }
+    mapping = {0: 'deeplab', 1: 'fcn', 2: 'pan', 3: 'unet'}
     
 

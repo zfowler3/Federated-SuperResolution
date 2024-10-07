@@ -5,7 +5,7 @@ from torch.utils.data import Dataset
 class InlineLoader(Dataset):
     """Dataset class for loading F3 patches and labels"""
 
-    def __init__(self, seismic_cube, label_cube, inline_inds, train_status=True, transform=None):
+    def __init__(self, seismic_cube, label_cube, inline_inds, train_status=True, transform=None, preprocessing=None):
         """Initializer function for the dataset class
 
         Parameters
@@ -31,7 +31,7 @@ class InlineLoader(Dataset):
         self.train_status = train_status
         self.sample_range = 10
         self.transform = transform
-
+        self.preprocessing = preprocessing
         self.num_sections = len(inline_inds)
 
     def __getitem__(self, index):
@@ -50,12 +50,13 @@ class InlineLoader(Dataset):
         inline_num = self.indices[index]
 
         section = self.seismic[:, inline_num, :].T # gets all inline for particular crossline
+        label_section = self.label[:, inline_num, :].T
         # apply transforms
         if self.transform:
             section = self.transform(section)
-
-        label_section = self.label[:, inline_num, :].T
-
+        if self.preprocessing:
+            section = self.preprocessing(image=section, mask=label_section)
+            #section, label_section = s['image'], s['mask']
 
         #section = torch.from_numpy(section)
         #label_section = torch.from_numpy(label_section)
