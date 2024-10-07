@@ -15,8 +15,8 @@ def args_parser():
     parser.add_argument('--rounds', type=int, default=10,
                         help="number of rounds of training")
     parser.add_argument('--num_users', type=int, default=10,
-                        help="number of users: K")
-    parser.add_argument('--local_ep', type=int, default=100,
+                        help="number of users: C")
+    parser.add_argument('--local_ep', type=int, default=10,
                         help="the number of local epochs: E")
     parser.add_argument('--local_bs', type=int, default=4,
                         help="local batch size: B")
@@ -71,6 +71,8 @@ def main():
     model_path = results_path + 'saved models/'
     if not os.path.exists(model_path):
         os.makedirs(model_path)
+
+
 
     
 

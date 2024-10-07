@@ -49,3 +49,26 @@ def create_clients_rand(data, num_clients):
         choice_tracker.append(choice)
 
     return client_idxs, choice_tracker
+
+def create_local_test(idxs, amount=0.2, save_folder='/home/zoe/GhassanGT Dropbox/Zoe Fowler/Zoe/InSync/BIGandDATA/Seismic/saved_idxs/'):
+    n_clients = len(idxs)
+    net_dataidx_test = {i: np.array([], dtype="int64") for i in range(n_clients)}
+    for i in range(n_clients):
+        current_client_idxs = idxs[i]
+        test_idxs = np.random.choice(current_client_idxs, size=int(amount*len(current_client_idxs)), replace=False)
+        net_dataidx_test[i] = test_idxs.astype(int)
+        new_train = np.where(np.isin(current_client_idxs, test_idxs, invert=True))[0]
+        idxs[i] = current_client_idxs[new_train].astype(int)
+
+    np.save(save_folder + 'test_idxs.npy', net_dataidx_test, allow_pickle=True)
+    np.save(save_folder + 'train_idxs.npy', idxs, allow_pickle=True)
+    return net_dataidx_test, idxs
+
+def overall_partition(data, num_clients):
+    local_loaders = {
+        i: {"datasize": 0, "train": None, "test": None, "test_size": 0} for i in range(num_clients)
+    }
+    client_idxs, _ = create_clients_rand(data, num_clients)
+    test, train = create_local_test(idxs=client_idxs)
+
+    return
