@@ -81,5 +81,6 @@ def overall_partition(data, num_clients, labels):
     for client_idx, dataidxs in test.items():
         local_loaders[client_idx]["test"] = InlineLoader(seismic_cube=data, label_cube=labels, inline_inds=dataidxs)
         local_loaders[client_idx]["test_size"] = len(dataidxs)
-
+    print('DataLoaders Complete')
+    print(local_loaders)
     return local_loaders
