@@ -1,8 +1,12 @@
 import numpy as np
 
+from Data.dataloader import InlineLoader
+
+
 def get_dataset_seismic(args):
 
     train_data = np.load(args.data_path + 'train/train_seismic.npy')
+    train_labels = np.load(args.data_path + 'train/train_labels.npy')
     test_seismic = np.load(args.data_path + 'test_once/test2_seismic.npy')
     test2 = np.load(args.data_path + 'test_once/test1_seismic.npy')
     # Normalize seismic
@@ -10,7 +14,8 @@ def get_dataset_seismic(args):
     test_seismic = (test_seismic - test_seismic.min()) / (test_seismic.max() - test_seismic.min())
     test2_s = (test2 - test2.min()) / (test2.max() - test2.min())
     # Create client idxs
-    user_idxs = create_clients(train_data, args.num_users)
+    #user_idxs = create_clients(train_data, args.num_users)
+    user_idxs = overall_partition(train_data, num_clients=args.num_clients, labels=train_labels)
 
     return train_data, test_seismic, user_idxs, test2_s
 
@@ -64,11 +69,17 @@ def create_local_test(idxs, amount=0.2, save_folder='/home/zoe/GhassanGT Dropbox
     np.save(save_folder + 'train_idxs.npy', idxs, allow_pickle=True)
     return net_dataidx_test, idxs
 
-def overall_partition(data, num_clients):
+def overall_partition(data, num_clients, labels):
     local_loaders = {
         i: {"datasize": 0, "train": None, "test": None, "test_size": 0} for i in range(num_clients)
     }
     client_idxs, _ = create_clients_rand(data, num_clients)
     test, train = create_local_test(idxs=client_idxs)
+    for client_idx, dataidxs in train.items():
+        local_loaders[client_idx]["datasize"] = len(dataidxs)
+        local_loaders[client_idx]["train"] = InlineLoader(seismic_cube=data, label_cube=labels, inline_inds=dataidxs)
+    for client_idx, dataidxs in test.items():
+        local_loaders[client_idx]["test"] = InlineLoader(seismic_cube=data, label_cube=labels, inline_inds=dataidxs)
+        local_loaders[client_idx]["test_size"] = len(dataidxs)
 
-    return
+    return local_loaders
