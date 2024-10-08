@@ -1,7 +1,8 @@
+
 import torch
 from torch.utils.data import Dataset
 from torchvision.transforms import transforms
-
+import matplotlib.pyplot as plt
 
 class InlineLoader(Dataset):
     """Dataset class for loading F3 patches and labels"""
@@ -30,7 +31,6 @@ class InlineLoader(Dataset):
         self.label = label_cube
         self.indices = inline_inds
         self.train_status = train_status
-        self.sample_range = 10
         self.transform = transform
         self.label_transform = transforms.Compose([transforms.ToTensor()])
         self.preprocessing = preprocessing
@@ -52,16 +52,15 @@ class InlineLoader(Dataset):
         inline_num = self.indices[index]
 
         section = self.seismic[:, inline_num, :].T # gets all inline for particular crossline
+
+        label_section = self.label[:, inline_num, :].T
+
+        if self.preprocessing:
+            s = self.preprocessing(image=section, mask=label_section)
+            section, label_section = s['image'], s['mask']
         # apply transforms
         if self.transform:
             section = self.transform(section)
-        label_section = self.label[:, inline_num, :].T
-        if self.preprocessing:
-            section = self.preprocessing(image=section, mask=label_section)
-            #section, label_section = s['image'], s['mask']
-
-        #section = torch.from_numpy(section)
-        label_section = self.label_transform(label_section)
 
         if self.train_status == False:
             return section, label_section

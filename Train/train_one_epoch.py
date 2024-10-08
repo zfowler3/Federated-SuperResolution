@@ -3,7 +3,8 @@ from torcheval.metrics.functional import peak_signal_noise_ratio
 import torch
 import matplotlib.pyplot as plt
 import os
-
+import torch.nn.functional as F
+from Utils.dice_score import dice_loss
 
 def train_epoch(data_loader, model, criterion, optimizer, device, epoch, dataset, model_type='resnet'):
     model.train()
@@ -18,30 +19,35 @@ def train_epoch(data_loader, model, criterion, optimizer, device, epoch, dataset
         if i == 0:
             print('Train img input: ', img.shape)
             print('Output shape: ', output.shape)
-            o = output.argmax(1).detach().cpu().numpy().T.squeeze()
-            og = target.detach().cpu().numpy()
-            if epoch % 10 == 0:
-                save_dir += 'epoch_' + str(epoch)
-                if not os.path.exists(save_dir):
-                    os.makedirs(save_dir)
-                plt.imshow(og[0].squeeze(), cmap='gray')
-                plt.savefig(save_dir + '/target.png')
-                plt.clf()
-                plt.imshow(o[0].squeeze(), cmap='gray')
-                plt.savefig(save_dir + '/outputted.png')
-                plt.clf()
-                g = img.detach().cpu().numpy()
-                plt.imshow(g[0].squeeze(), cmap='gray')
-                plt.savefig(save_dir + '/input.png')
-                plt.clf()
+            # o = pred_mask.detach().cpu().numpy().T.squeeze()
+            # og = target.detach().cpu().numpy()
+            # if epoch % 10 == 0:
+            #     save_dir += 'epoch_' + str(epoch)
+            #     if not os.path.exists(save_dir):
+            #         os.makedirs(save_dir)
+            #     plt.imshow(og[0].squeeze(), cmap='gray')
+            #     plt.savefig(save_dir + '/target.png')
+            #     plt.clf()
+            #     plt.imshow(o[0].squeeze(), cmap='gray')
+            #     plt.savefig(save_dir + '/outputted.png')
+            #     plt.clf()
+            #     g = img.detach().cpu().numpy()
+            #     plt.imshow(g[0].squeeze(), cmap='gray')
+            #     plt.savefig(save_dir + '/input.png')
+            #     plt.clf()
         optimizer.zero_grad()
         loss = criterion(output, target)
+        loss += dice_loss(
+            F.softmax(output, dim=1).float(),
+            F.one_hot(target, num_classes=6).permute(0, 3, 1, 2).float(),
+            multiclass=True
+        )
         loss.backward()
         optimizer.step()
         batch_loss.append(loss.item())
 
     epoch_loss = sum(batch_loss) / len(batch_loss)
-    print('Train loss for current epoch: ', epoch_loss)
+    #print('Train loss for current epoch: ', epoch_loss)
     return epoch_loss, model
 
 def eval_epoch(data_loader, model, criterion, device, save_file=None):

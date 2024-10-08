@@ -2,12 +2,11 @@ import numpy as np
 import os
 import torch
 import argparse
-import segmentation_models_pytorch as smp
 from torch import nn
 from torch.utils.data import DataLoader
 from torchvision.transforms import transforms
-
 from Data.dataloader import InlineLoader
+from Models.unet_seg import UNet
 from Train.train_one_epoch import train_epoch, eval_epoch
 from Utils.get_seismic_data import get_dataset_seismic
 
@@ -51,14 +50,19 @@ def main():
     # Set up number of ensembles
     C = args.num_users
 
+    # Get models for each client
+    uploaded_models = {
+        i: {"model": None} for i in range(C)
+    }
+    mapping = {0: 'deeplab', 1: 'fcn', 2: 'pan', 3: 'unet'}
+    model = UNet(n_channels=1, n_classes=6)
+    # Transforms for test
+    data_transforms_test = transforms.Compose([transforms.ToTensor()])
     # Get dataset and groups
-    train_norm, test_norm, user_groups, test2_norm = get_dataset_seismic(args)
+    train_norm, test_norm, user_groups, test2_norm = get_dataset_seismic(args, transform=None)
     test_labels = np.load(args.data_path + 'test_once/test2_labels.npy')
     testlab2 = np.load(args.data_path + 'test_once/test1_labels.npy')
     # Set up dataloaders
-    data_transforms_test = transforms.Compose([
-        transforms.ToTensor()
-    ])
     test_dataset = InlineLoader(test_norm, label_cube=test_labels, inline_inds=list(np.arange(0, test_norm.shape[1])),
                                 train_status=False, transform=data_transforms_test)
     test2 = InlineLoader(test2_norm, testlab2, inline_inds=list(np.arange(0, test2_norm.shape[1])), train_status=False,
@@ -74,16 +78,9 @@ def main():
     if not os.path.exists(model_path):
         os.makedirs(model_path)
 
-    # Get models for each client
-    uploaded_models = {
-        i: {"model": None} for i in range(C)
-    }
-    mapping = {0: 'deeplab', 1: 'fcn', 2: 'pan', 3: 'unet'}
-
     # Create models
     # Debugging: just create one instance of model
     device = 'cuda'
-    model = smp.UnetPlusPlus(in_channels=1, classes=6)
     model = model.to(device)
     criterion = nn.CrossEntropyLoss().to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)

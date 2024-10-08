@@ -1,10 +1,11 @@
 import numpy as np
+from torch.utils.data import DataLoader
 from torchvision.transforms import transforms
 
 from Data.dataloader import InlineLoader
 
 
-def get_dataset_seismic(args):
+def get_dataset_seismic(args, transform=None):
 
     train_data = np.load(args.data_path + 'train/train_seismic.npy')
     train_labels = np.load(args.data_path + 'train/train_labels.npy')
@@ -16,7 +17,8 @@ def get_dataset_seismic(args):
     test2_s = (test2 - test2.min()) / (test2.max() - test2.min())
     # Create client idxs
     #user_idxs = create_clients(train_data, args.num_users)
-    user_idxs = overall_partition(train_data, num_clients=args.num_users, labels=train_labels)
+    user_idxs = overall_partition(train_data, num_clients=args.num_users, labels=train_labels, transf=transform)
+    #train_idxs, test_idxs = client_idxs(data=train_data, num_clients=args.num_users)
 
     return train_data, test_seismic, user_idxs, test2_s
 
@@ -70,22 +72,29 @@ def create_local_test(idxs, amount=0.2, save_folder='/home/zoe/GhassanGT Dropbox
     np.save(save_folder + 'train_idxs.npy', idxs, allow_pickle=True)
     return net_dataidx_test, idxs
 
-def overall_partition(data, num_clients, labels):
+def client_idxs(data, num_clients):
+    client_idx, _ = create_clients_rand(data, num_clients)
+    test, train = create_local_test(idxs=client_idx)
+    return train, test
+
+def overall_partition(data, num_clients, labels, transf=None):
     local_loaders = {
         i: {"datasize": 0, "train": None, "test": None, "test_size": 0} for i in range(num_clients)
     }
     client_idxs, _ = create_clients_rand(data, num_clients)
     test, train = create_local_test(idxs=client_idxs)
-    data_transforms = transforms.Compose([
-        transforms.ToTensor()
-    ])
+
+    data_transforms_ = transforms.Compose([transforms.ToTensor()])
+
     for client_idx, dataidxs in train.items():
         local_loaders[client_idx]["datasize"] = len(dataidxs)
-        local_loaders[client_idx]["train"] = InlineLoader(seismic_cube=data, label_cube=labels, inline_inds=dataidxs,
-                                                          transform=data_transforms)
+        cur_dataset = InlineLoader(seismic_cube=data, label_cube=labels, inline_inds=dataidxs,
+                                                          preprocessing=transf, transform=data_transforms_)
+        local_loaders[client_idx]["train"] = DataLoader(cur_dataset, batch_size=8, shuffle=True)
     for client_idx, dataidxs in test.items():
-        local_loaders[client_idx]["test"] = InlineLoader(seismic_cube=data, label_cube=labels, inline_inds=dataidxs,
-                                                         transform=data_transforms)
+        dataset = InlineLoader(seismic_cube=data, label_cube=labels, inline_inds=dataidxs,
+                                                         preprocessing=transf, transform=data_transforms_)
+        local_loaders[client_idx]["test"] = DataLoader(dataset, batch_size=1, shuffle=False)
         local_loaders[client_idx]["test_size"] = len(dataidxs)
     print('DataLoaders Complete')
     print(local_loaders)
