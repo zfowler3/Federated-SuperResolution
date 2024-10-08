@@ -1,4 +1,5 @@
 import numpy as np
+from torchvision.transforms import transforms
 
 from Data.dataloader import InlineLoader
 
@@ -15,7 +16,7 @@ def get_dataset_seismic(args):
     test2_s = (test2 - test2.min()) / (test2.max() - test2.min())
     # Create client idxs
     #user_idxs = create_clients(train_data, args.num_users)
-    user_idxs = overall_partition(train_data, num_clients=args.num_clients, labels=train_labels)
+    user_idxs = overall_partition(train_data, num_clients=args.num_users, labels=train_labels)
 
     return train_data, test_seismic, user_idxs, test2_s
 
@@ -75,11 +76,16 @@ def overall_partition(data, num_clients, labels):
     }
     client_idxs, _ = create_clients_rand(data, num_clients)
     test, train = create_local_test(idxs=client_idxs)
+    data_transforms = transforms.Compose([
+        transforms.ToTensor()
+    ])
     for client_idx, dataidxs in train.items():
         local_loaders[client_idx]["datasize"] = len(dataidxs)
-        local_loaders[client_idx]["train"] = InlineLoader(seismic_cube=data, label_cube=labels, inline_inds=dataidxs)
+        local_loaders[client_idx]["train"] = InlineLoader(seismic_cube=data, label_cube=labels, inline_inds=dataidxs,
+                                                          transform=data_transforms)
     for client_idx, dataidxs in test.items():
-        local_loaders[client_idx]["test"] = InlineLoader(seismic_cube=data, label_cube=labels, inline_inds=dataidxs)
+        local_loaders[client_idx]["test"] = InlineLoader(seismic_cube=data, label_cube=labels, inline_inds=dataidxs,
+                                                         transform=data_transforms)
         local_loaders[client_idx]["test_size"] = len(dataidxs)
     print('DataLoaders Complete')
     print(local_loaders)

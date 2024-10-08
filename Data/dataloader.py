@@ -1,5 +1,6 @@
+import torch
 from torch.utils.data import Dataset
-
+from torchvision.transforms import transforms
 
 
 class InlineLoader(Dataset):
@@ -31,6 +32,7 @@ class InlineLoader(Dataset):
         self.train_status = train_status
         self.sample_range = 10
         self.transform = transform
+        self.label_transform = transforms.Compose([transforms.ToTensor()])
         self.preprocessing = preprocessing
         self.num_sections = len(inline_inds)
 
@@ -50,17 +52,16 @@ class InlineLoader(Dataset):
         inline_num = self.indices[index]
 
         section = self.seismic[:, inline_num, :].T # gets all inline for particular crossline
-        label_section = self.label[:, inline_num, :].T
         # apply transforms
         if self.transform:
             section = self.transform(section)
+        label_section = self.label[:, inline_num, :].T
         if self.preprocessing:
             section = self.preprocessing(image=section, mask=label_section)
             #section, label_section = s['image'], s['mask']
 
         #section = torch.from_numpy(section)
-        #label_section = torch.from_numpy(label_section)
-            #.to(device).type(torch.long)
+        label_section = self.label_transform(label_section)
 
         if self.train_status == False:
             return section, label_section

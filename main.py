@@ -96,3 +96,7 @@ def main():
     test_loss, preds = eval_epoch(data_loader=test_loader, model=model, criterion=criterion, device=device,
                                   save_file=test_labels)
 
+
+# start main
+if __name__ == "__main__":
+    main()
