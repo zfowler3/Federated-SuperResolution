@@ -63,7 +63,7 @@ class InlineLoader(Dataset):
             #.to(device).type(torch.long)
 
         if self.train_status == False:
-            return section, label_section, index
+            return section, label_section
 
         # else:
         #     if inline_num in range(self.seismic.shape[1] - self.sample_range, self.seismic.shape[1]):
@@ -78,7 +78,7 @@ class InlineLoader(Dataset):
         #     corrupted_section = self.seismic[:, inline_num, :].T
         #     corrupted_section = torch.from_numpy(corrupted_section).to(device).type(torch.float).unsqueeze(0)
 
-        return section, label_section, index
+        return section, label_section
 
     def __len__(self):
         """Retrieves total number of training samples"""

@@ -2,7 +2,8 @@ import numpy as np
 import os
 import torch
 import argparse
-
+import segmentation_models_pytorch as smp
+from torch import nn
 from torch.utils.data import DataLoader
 from torchvision.transforms import transforms
 
@@ -77,5 +78,11 @@ def main():
         i: {"model": None} for i in range(C)
     }
     mapping = {0: 'deeplab', 1: 'fcn', 2: 'pan', 3: 'unet'}
-    
 
+    # Create models
+    # Debugging: just create one instance of model
+    device = 'cuda'
+    model = smp.UnetPlusPlus(in_channels=1, classes=6)
+    model = model.to(device)
+    criterion = nn.CrossEntropyLoss().to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
