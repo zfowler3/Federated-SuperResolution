@@ -18,7 +18,7 @@ def train_epoch(data_loader, model, criterion, optimizer, device, epoch, dataset
         if i == 0:
             print('Train img input: ', img.shape)
             print('Output shape: ', output.shape)
-            o = output.detach().cpu().numpy()
+            o = output.argmax(1).detach().cpu().numpy().T.squeeze()
             og = target.detach().cpu().numpy()
             if epoch % 10 == 0:
                 save_dir += 'epoch_' + str(epoch)
