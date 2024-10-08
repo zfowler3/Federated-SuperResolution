@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader
 from torchvision.transforms import transforms
 
 from Data.dataloader import InlineLoader
+from Train.train_one_epoch import train_epoch
 from Utils.get_seismic_data import get_dataset_seismic
 
 
@@ -86,3 +87,7 @@ def main():
     model = model.to(device)
     criterion = nn.CrossEntropyLoss().to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+    for e in range(args.local_ep):
+        user = user_groups[0]
+        train_epoch(data_loader=user["train"], model=model, criterion=criterion, optimizer=optimizer, device=device,
+                    epoch=e, dataset='seismic', model_type='unet')
