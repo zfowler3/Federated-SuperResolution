@@ -4,8 +4,6 @@ import torch
 import matplotlib.pyplot as plt
 import os
 
-from train_segnet import pred_test_vol
-
 
 def train_epoch(data_loader, model, criterion, optimizer, device, epoch, dataset, model_type='resnet'):
     model.train()
