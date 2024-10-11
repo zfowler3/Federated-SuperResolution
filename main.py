@@ -6,6 +6,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 from torchvision.transforms import transforms
 from Data.dataloader import InlineLoader
+from Models.segnet import FaciesSegNet
 from Models.unet_seg import UNet
 from Train.train_one_epoch import train_epoch, eval_epoch
 from Utils.get_seismic_data import get_dataset_seismic
@@ -56,6 +57,7 @@ def main():
     # }
     # mapping = {0: 'deeplab', 1: 'fcn', 2: 'pan', 3: 'unet'}
     model = UNet(n_channels=1, n_classes=6)
+    #model = FaciesSegNet(n_class=6)
     # Transforms for test
     data_transforms_test = transforms.Compose([transforms.ToTensor()])
     # Get dataset and groups

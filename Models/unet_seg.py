@@ -22,6 +22,8 @@ class UNet(nn.Module):
         self.up4 = (Up(128, 64, bilinear))
         self.outc = (OutConv(64, n_classes))
 
+        self.reconstruct = nn.Conv2d(64, 1, kernel_size=1)
+
     def forward(self, x):
         x1 = self.inc(x)
         x2 = self.down1(x1)
@@ -33,7 +35,8 @@ class UNet(nn.Module):
         x = self.up3(x, x2)
         x = self.up4(x, x1)
         logits = self.outc(x)
-        return logits
+        reconstruction = self.reconstruct(x)
+        return logits, reconstruction
 
     def use_checkpointing(self):
         self.inc = torch.utils.checkpoint(self.inc)

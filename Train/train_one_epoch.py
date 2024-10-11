@@ -1,4 +1,5 @@
 import numpy as np
+from torch import nn
 from torcheval.metrics.functional import peak_signal_noise_ratio
 import torch
 import matplotlib.pyplot as plt
@@ -9,16 +10,23 @@ from Utils.dice_score import dice_loss
 def train_epoch(data_loader, model, criterion, optimizer, device, epoch, dataset, model_type='resnet'):
     model.train()
     batch_loss = []
+    c = nn.MSELoss().to(device)
     save_dir = './examples/' + dataset + '/' + model_type + '/'
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
     for i, (img, target) in enumerate(data_loader):
         img = img.to(device).type(torch.float)
         target = target.to(device).type(torch.long)
-        output = model(img)
+        output, recon = model(img)
         if i == 0:
             print('Train img input: ', img.shape)
             print('Output shape: ', output.shape)
+            print('Reconstruction shape: ', recon.shape)
+            r = recon.detach().cpu().numpy()
+            rr = r[0].squeeze()
+            print(rr.shape)
+            plt.imshow(r[0].squeeze())
+            plt.show()
             # o = pred_mask.detach().cpu().numpy().T.squeeze()
             # og = target.detach().cpu().numpy()
             # if epoch % 10 == 0:
@@ -37,11 +45,13 @@ def train_epoch(data_loader, model, criterion, optimizer, device, epoch, dataset
             #     plt.clf()
         optimizer.zero_grad()
         loss = criterion(output, target)
-        loss += dice_loss(
-            F.softmax(output, dim=1).float(),
-            F.one_hot(target, num_classes=6).permute(0, 3, 1, 2).float(),
-            multiclass=True
-        )
+        reconstruction_loss = c(recon, img)
+        loss += reconstruction_loss
+        # loss += dice_loss(
+        #     F.softmax(output, dim=1).float(),
+        #     F.one_hot(target, num_classes=6).permute(0, 3, 1, 2).float(),
+        #     multiclass=True
+        # )
         loss.backward()
         optimizer.step()
         batch_loss.append(loss.item())
@@ -65,6 +75,8 @@ def eval_epoch(data_loader, model, criterion, device, save_file=None):
             image = image.to(device).type(torch.float)
             target = target.to(device).type(torch.long)
             output = model(image)
+            if i == 0:
+                print('test output size : ', output.shape)
             if save_file is not None:
                 prediction[:, i, :] = output.argmax(1).detach().cpu().numpy().T.squeeze()
             loss_ = criterion(output, target)
