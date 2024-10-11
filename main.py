@@ -51,10 +51,10 @@ def main():
     C = args.num_users
 
     # Get models for each client
-    uploaded_models = {
-        i: {"model": None} for i in range(C)
-    }
-    mapping = {0: 'deeplab', 1: 'fcn', 2: 'pan', 3: 'unet'}
+    # uploaded_models = {
+    #     i: {"model": None} for i in range(C)
+    # }
+    # mapping = {0: 'deeplab', 1: 'fcn', 2: 'pan', 3: 'unet'}
     model = UNet(n_channels=1, n_classes=6)
     # Transforms for test
     data_transforms_test = transforms.Compose([transforms.ToTensor()])
@@ -92,7 +92,7 @@ def main():
     print('Testing')
     test_loss, preds = eval_epoch(data_loader=test_loader, model=model, criterion=criterion, device=device,
                                   save_file=test_labels)
-
+    np.save('/home/zoe/ex_preds.npy', preds)
 
 # start main
 if __name__ == "__main__":

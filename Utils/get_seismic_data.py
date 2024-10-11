@@ -58,6 +58,27 @@ def create_clients_rand(data, num_clients):
 
     return client_idxs, choice_tracker
 
+def create_clients_rand_sections(data, num_clients):
+    client_idxs = {}
+    choice_tracker = []
+    percentage_missing = [0.2, 0.4, 0.6, 0.8]
+    choices = ['inline', 'crossline']
+    choices=['crossline']
+    for c in range(num_clients):
+        p = np.random.choice(percentage_missing, size=1)[0]
+        choose = 1 - p
+        choice = np.random.choice(choices, size=1)[0]
+        if choice == 'inline':
+            arr = data.shape[0]
+        else:
+            arr = data.shape[1]
+
+        cur_idxs = np.random.choice(np.arange(arr), size=int(arr*choose), replace=False)
+        client_idxs[c] = cur_idxs
+        choice_tracker.append(choice)
+
+    return client_idxs, choice_tracker
+
 def create_local_test(idxs, amount=0.2, save_folder='/home/zoe/GhassanGT Dropbox/Zoe Fowler/Zoe/InSync/BIGandDATA/Seismic/saved_idxs/'):
     n_clients = len(idxs)
     net_dataidx_test = {i: np.array([], dtype="int64") for i in range(n_clients)}
