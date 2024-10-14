@@ -105,6 +105,7 @@ def main():
     # Testing
     print('Testing')
     # For each local model, pass in test images. Save off outputs, scores, etc. for final aggregation
+    # Dictionary for saving off outputs for test set 2
     local_preds_2 = {
         i: {"pred": None, "psnr": []} for i in range(C)
     }
@@ -116,6 +117,7 @@ def main():
         local_preds_2[c]["pred"] = cur_preds
         local_preds_2[c]["psnr"] = cur_psnr
 
+    # Compare and aggregate
 
 
     #np.save('/home/zoe/ex_preds.npy', preds)
