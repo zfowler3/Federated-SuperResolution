@@ -107,15 +107,19 @@ def main():
     # For each local model, pass in test images. Save off outputs, scores, etc. for final aggregation
     # Dictionary for saving off outputs for test set 2
     local_preds_2 = {
-        i: {"pred": None, "psnr": []} for i in range(C)
+        i: {"pred": None} for i in range(C)
+    }
+    local_psnr_2 = {
+        i: {"psnr": []} for i in range(C)
     }
     criterion = nn.CrossEntropyLoss().to(device)
     # Iterate through all clients
     for c in range(C):
-        test_loss, cur_preds, cur_psnr = eval_epoch(data_loader=test_loader, model=model, criterion=criterion,
+        client_model = copy.deepcopy(local_models[c]["model"]) # Load current local model
+        test_loss, cur_preds, cur_psnr = eval_epoch(data_loader=test_loader, model=client_model, criterion=criterion,
                                                     device=device, save_file=test_labels)
         local_preds_2[c]["pred"] = cur_preds
-        local_preds_2[c]["psnr"] = cur_psnr
+        local_psnr_2[c]["psnr"] = cur_psnr
 
     # Compare and aggregate
 
