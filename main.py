@@ -113,6 +113,10 @@ def main():
     for c in range(C):
         test_loss, cur_preds, cur_psnr = eval_epoch(data_loader=test_loader, model=model, criterion=criterion,
                                                     device=device, save_file=test_labels)
+        local_preds_2[c]["pred"] = cur_preds
+        local_preds_2[c]["psnr"] = cur_psnr
+
+
 
     #np.save('/home/zoe/ex_preds.npy', preds)
 
