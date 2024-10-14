@@ -52,12 +52,7 @@ def main():
     C = args.num_users
 
     # Get models for each client
-    # uploaded_models = {
-    #     i: {"model": None} for i in range(C)
-    # }
-    # mapping = {0: 'deeplab', 1: 'fcn', 2: 'pan', 3: 'unet'}
     model = UNet(n_channels=1, n_classes=6)
-    #model = FaciesSegNet(n_class=6)
     # Transforms for test
     data_transforms_test = transforms.Compose([transforms.ToTensor()])
     # Get dataset and groups

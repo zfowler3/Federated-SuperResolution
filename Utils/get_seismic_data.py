@@ -102,11 +102,15 @@ def client_idxs(data, num_clients):
     return train, test
 
 def overall_partition(data, num_clients, labels, transf=None):
+    # local_loaders = {
+    #     i: {"datasize": 0, "train": None, "test": None, "test_size": 0} for i in range(num_clients)
+    # }
     local_loaders = {
-        i: {"datasize": 0, "train": None, "test": None, "test_size": 0} for i in range(num_clients)
+        i: {"datasize": 0, "train": None} for i in range(num_clients)
     }
-    client_idxs, _ = create_clients_rand(data, num_clients)
-    test, train = create_local_test(idxs=client_idxs)
+    #client_idxs, _ = create_clients_rand(data, num_clients)
+    train, _ = create_clients_rand_sections(data, num_clients)
+    #test, train = create_local_test(idxs=client_idxs)
 
     data_transforms_ = transforms.Compose([transforms.ToTensor()])
 
@@ -115,11 +119,10 @@ def overall_partition(data, num_clients, labels, transf=None):
         cur_dataset = InlineLoader(seismic_cube=data, label_cube=labels, inline_inds=dataidxs,
                                                           preprocessing=transf, transform=data_transforms_)
         local_loaders[client_idx]["train"] = DataLoader(cur_dataset, batch_size=8, shuffle=True)
-    for client_idx, dataidxs in test.items():
-        dataset = InlineLoader(seismic_cube=data, label_cube=labels, inline_inds=dataidxs,
-                                                         preprocessing=transf, transform=data_transforms_)
-        local_loaders[client_idx]["test"] = DataLoader(dataset, batch_size=1, shuffle=False)
-        local_loaders[client_idx]["test_size"] = len(dataidxs)
+    # for client_idx, dataidxs in test.items():
+    #     dataset = InlineLoader(seismic_cube=data, label_cube=labels, inline_inds=dataidxs,
+    #                                                      preprocessing=transf, transform=data_transforms_)
+    #     local_loaders[client_idx]["test"] = DataLoader(dataset, batch_size=1, shuffle=False)
+    #     local_loaders[client_idx]["test_size"] = len(dataidxs)
     print('DataLoaders Complete')
-    print(local_loaders)
     return local_loaders
