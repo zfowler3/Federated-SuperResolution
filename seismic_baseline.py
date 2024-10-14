@@ -69,7 +69,7 @@ epoch_loss = []
 best_loss = 1000000
 counter = 0
 
-for ep in range(1):
+for ep in range(epochs):
     loss, model = train_epoch(data_loader=train_loader, model=model, criterion=criterion1, optimizer=optimizer,
                               device=device, dataset='seismic', model_type='unet')
     print('Epoch {}/{}: Loss {}'.format(ep, epochs, loss))
@@ -96,15 +96,15 @@ for ep in range(1):
 # inference
 print('---Training complete---')
 print('Testing best trained model . . .')
-loss2, preds2, _ = eval_epoch(data_loader=test_loader2, model=best_model, criterion=criterion1, device=device,
+loss2, preds2, _ = eval_epoch(data_loader=test_loader2, model=copy.deepcopy(best_model), criterion=criterion1, device=device,
                               save_file=test_labels2)
-loss1, preds1, _ = eval_epoch(data_loader=test_loader, model=best_model, criterion=criterion1, device=device,
+loss1, preds1, _ = eval_epoch(data_loader=test_loader, model=copy.deepcopy(best_model), criterion=criterion1, device=device,
                               save_file=test_labels)
 
 miou_test1 = jaccard_score(test_labels2.flatten(), preds2.flatten(), labels=list(range(6)), average='weighted')
 miou_test1_class = jaccard_score(test_labels2.flatten(), preds2.flatten(), labels=list(range(6)), average=None)
 miou_test2 = jaccard_score(test_labels.flatten(), preds1.flatten(), labels=list(range(6)), average='weighted')
-miou_test2_class = jaccard_score(test_labels2.flatten(), preds1.flatten(), labels=list(range(6)), average=None)
+miou_test2_class = jaccard_score(test_labels.flatten(), preds1.flatten(), labels=list(range(6)), average=None)
 
 print('Baseline MIOU Score for Test set 1: ', miou_test1)
 print(miou_test1_class)
