@@ -74,12 +74,17 @@ for ep in range(epochs):
     val_loss1, _, _ = eval_epoch(data_loader=valid_loader_1, model=model, criterion=criterion1, device=device)
     val_loss2, _, _ = eval_epoch(data_loader=valid_loader_2, model=model, criterion=criterion1, device=device)
     val_loss = val_loss1 + val_loss2
+    print('Validation loss: ', val_loss)
     if val_loss < best_loss:
         best_loss = val_loss
         counter = 0
         best_model = copy.deepcopy(model)
     else:
         counter += 1
+        if counter % 3 == 0:
+            print('Reduced LR')
+            lr /= 10
+            optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
         if counter >= 10:
             print('Early stop due to validation loss not decreasing')
             print('Stop at Epoch ' + str(ep))
