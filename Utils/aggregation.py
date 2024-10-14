@@ -1,6 +1,6 @@
 import numpy as np
 
-def aggregate(preds, psnr, mode='majority', to_weight='psnr'):
+def aggregate(preds, psnr, mode='majority'):
     # total number of test imgs
     num_test_img = len(psnr[0]["val"])
     p = preds[0]["pred"]
