@@ -10,6 +10,9 @@ from Data.dataloader import InlineLoader
 from Models.unet_seg import UNet
 from Train.train_one_epoch import train_epoch, eval_epoch
 
+torch.manual_seed(1)
+np.random.seed(1)
+
 data_transforms = transforms.Compose([
     transforms.ToTensor()
 ])
