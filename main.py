@@ -110,7 +110,7 @@ def main():
         i: {"pred": None} for i in range(C)
     }
     local_psnr_2 = {
-        i: {"psnr": []} for i in range(C)
+        i: {"val": []} for i in range(C)
     }
     criterion = nn.CrossEntropyLoss().to(device)
     # Iterate through all clients
@@ -119,7 +119,7 @@ def main():
         test_loss, cur_preds, cur_psnr = eval_epoch(data_loader=test_loader, model=client_model, criterion=criterion,
                                                     device=device, save_file=test_labels)
         local_preds_2[c]["pred"] = cur_preds
-        local_psnr_2[c]["psnr"] = cur_psnr
+        local_psnr_2[c]["val"] = cur_psnr
 
     # Compare and aggregate
 

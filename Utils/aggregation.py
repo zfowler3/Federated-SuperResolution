@@ -1,8 +1,8 @@
 import numpy as np
 
-def aggregate(preds, psnr, mode='majority'):
+def aggregate(preds, psnr, mode='majority', to_weight='psnr'):
     # total number of test imgs
-    num_test_img = len(psnr[0]["psnr"])
+    num_test_img = len(psnr[0]["val"])
     p = preds[0]["pred"]
     overall = np.zeros_like(p)
 
@@ -12,7 +12,7 @@ def aggregate(preds, psnr, mode='majority'):
         elif mode == 'avg':
             final_pred = average_vote(preds=preds, img_num=i)
         else:
-            final_pred = weighted_vote(preds=preds, psnr=psnr, img_num=i)
+            final_pred = weighted_vote(preds=preds, to_weight=psnr, img_num=i)
 
         overall[:, i, :] = final_pred
 
@@ -43,7 +43,7 @@ def average_vote(preds, img_num):
 def weighted_vote(preds, to_weight, img_num):
     wts_for_img = []
     for c in range(len(preds)):
-        wts_for_img.append(to_weight[c]["psnr"][img_num])
+        wts_for_img.append(to_weight[c]["val"][img_num])
     weights = np.array(wts_for_img) / np.sum(wts_for_img)
 
     s = preds[0]["pred"][:, img_num, :]
