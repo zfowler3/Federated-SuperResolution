@@ -50,6 +50,7 @@ def main():
 
     # Set up number of ensembles
     C = args.num_users
+    args.num_classes = 6
 
     # Get models for each client
     model = UNet(n_channels=1, n_classes=6)
@@ -57,6 +58,10 @@ def main():
     data_transforms_test = transforms.Compose([transforms.ToTensor()])
     # Get dataset and groups
     train_norm, test_norm, user_groups, test2_norm = get_dataset_seismic(args, transform=None)
+
+    args.user_groups = user_groups
+
+    # Set up Global Testing
     test_labels = np.load(args.data_path + 'test_once/test2_labels.npy')
     testlab2 = np.load(args.data_path + 'test_once/test1_labels.npy')
     # Set up dataloaders

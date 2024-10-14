@@ -7,7 +7,7 @@ import os
 import torch.nn.functional as F
 from Utils.dice_score import dice_loss
 
-def train_epoch(data_loader, model, criterion, optimizer, device, epoch, dataset, model_type='resnet'):
+def train_epoch(data_loader, model, criterion, optimizer, device, dataset, model_type='resnet'):
     model.train()
     batch_loss = []
     c = nn.MSELoss().to(device)
