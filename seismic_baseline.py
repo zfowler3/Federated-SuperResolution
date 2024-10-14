@@ -1,16 +1,14 @@
 import copy
-
 import numpy as np
 import torch
-import torchvision
 import matplotlib.pyplot as plt
 from sklearn.metrics import jaccard_score
 from torch import nn
 from torch.utils.data import DataLoader
 from torchvision.transforms import transforms
 from Data.dataloader import InlineLoader
-from Models.segnet import FaciesSegNet
-from Models.unet import UNet
+from Models.unet_seg import UNet
+from Train.train_one_epoch import train_epoch, eval_epoch
 
 data_transforms = transforms.Compose([
     transforms.ToTensor()
@@ -54,17 +52,10 @@ test_loader2 = DataLoader(test_dataset2, batch_size=1, shuffle=False)
 
 # Params
 device = 'cuda'
-epochs = 20
+epochs = 60
 lr = 0.001
-# seg_model = FaciesSegNet(n_class=6)
-# # load in pretrained weights
-#
-# # freeze seg_model
-# for param in seg_model.parameters():
-#     param.requires_grad = False
-# seg_model = seg_model.to(device)
 # For SR model
-model = UNet(feature_scale=8)
+model = UNet(n_channels=1, n_classes=6)
 model = model.to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
 criterion1 = nn.CrossEntropyLoss().to(device)
@@ -72,54 +63,17 @@ criterion2 = nn.MSELoss().to(device)
 
 # train
 epoch_loss = []
-alpha = 1
 best_loss = 1000000
 counter = 0
 
 for ep in range(epochs):
-    batch_loss = []
-    model.train(True)
-    for batch_idx, (images, labels, idx) in enumerate(train_loader):
-        images, labels = images.to(device).type(torch.float), labels.to(device).type(torch.long)
-        output = model(images)
-
-        if batch_idx == 0:
-            print('Train images: ', images.shape)
-            print('Output shape: ', output.shape)
-            testing = images[0].cpu().numpy().squeeze()
-            plt.imshow(testing.T)
-            plt.savefig('/home/zoe/ground_truth.png')
-            plt.clf()
-            output_ex = output[0].detach().cpu().numpy().squeeze()
-            plt.imshow(output_ex.T)
-            plt.savefig('/home/zoe/output.png')
-            plt.clf()
-
-        optimizer.zero_grad()
-        # Super resolution loss; between output and ground-truth img
-        loss_sr = alpha*criterion2(output, images)
-        # Cross-entropy loss; try to get correct segmentation
-        # Pass in SR img into FaciesSegNet
-        #output_segmentation = seg_model(copy.deepcopy(output))
-        #loss_ce = (1-alpha)*criterion1(output_segmentation, labels)
-        # Combined loss
-        #loss = loss_sr + loss_ce
-        loss = loss_sr
-        loss.backward()
-        optimizer.step()
-        batch_loss.append(loss.item())
-    epoch_loss.append(sum(batch_loss) / len(batch_loss))
-    print('Train loss for epoch: ', sum(batch_loss) / len(batch_loss))
-    # Validation loop
-    model.train(False)
-    running_loss = []
-    for batch_idx, (images, labels, idx) in enumerate(valid_loader_1):
-        images, labels = images.to(device).type(torch.float), labels.to(device).type(torch.long)
-        output = model(images)
-        optimizer.zero_grad()
-        _loss = criterion2(output, images)
-        running_loss.append(_loss.item())
-    val_loss = sum(running_loss) / len(running_loss)
+    loss, model = train_epoch(data_loader=train_loader, model=model, criterion=criterion1, optimizer=optimizer,
+                              device=device, dataset='seismic', model_type='unet')
+    print('Epoch {}/{}: Loss {}'.format(ep, epochs, loss))
+    # Validation loop on both val sets
+    val_loss1, _, _ = eval_epoch(data_loader=valid_loader_1, model=model, criterion=criterion1, device=device)
+    val_loss2, _, _ = eval_epoch(data_loader=valid_loader_2, model=model, criterion=criterion1, device=device)
+    val_loss = val_loss1 + val_loss2
     if val_loss < best_loss:
         best_loss = val_loss
         counter = 0
@@ -133,7 +87,17 @@ for ep in range(epochs):
 
 # inference
 print('---Training complete---')
-print('Testing trained model . . .')
+print('Testing best trained model . . .')
+loss2, preds2, _ = eval_epoch(data_loader=test_loader2, model=best_model, criterion=criterion1, device=device,
+                              save_file=test_labels2)
+loss1, preds1, _ = eval_epoch(data_loader=test_loader, model=best_model, criterion=criterion1, device=device,
+                              save_file=test_labels)
+
+miou_test1 = jaccard_score(test_labels.flatten(), preds2.flatten(), labels=list(range(6)), average='weighted')
+miou_test2 = jaccard_score(test_labels.flatten(), preds1.flatten(), labels=list(range(6)), average='weighted')
+
+print('Baseline MIOU Score for Test set 1: ', miou_test1)
+print('Baseline MIOU Score for Test set 2: ', miou_test2)
 
 # best_model.eval()
 # loss = 0

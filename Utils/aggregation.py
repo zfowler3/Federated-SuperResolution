@@ -5,6 +5,7 @@ def aggregate(preds, psnr, mode='majority'):
     num_test_img = len(psnr[0]["val"])
     p = preds[0]["pred"]
     overall = np.zeros_like(p)
+    iou = []
 
     for i in range(num_test_img):
         if mode == 'majority':
@@ -15,6 +16,7 @@ def aggregate(preds, psnr, mode='majority'):
             final_pred = weighted_vote(preds=preds, to_weight=psnr, img_num=i)
 
         overall[:, i, :] = final_pred
+        # Get IoU, etc. stats for produced image
 
     return overall
 
