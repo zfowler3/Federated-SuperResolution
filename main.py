@@ -102,11 +102,19 @@ def main():
         loaded_model.load_state_dict(updated_weights)
         local_models[c]["model"] = copy.deepcopy(loaded_model)
 
-
+    # Testing
     print('Testing')
-    test_loss, preds = eval_epoch(data_loader=test_loader, model=model, criterion=criterion, device=device,
-                                  save_file=test_labels)
-    np.save('/home/zoe/ex_preds.npy', preds)
+    # For each local model, pass in test images. Save off outputs, scores, etc. for final aggregation
+    local_preds_2 = {
+        i: {"pred": None, "psnr": []} for i in range(C)
+    }
+    criterion = nn.CrossEntropyLoss().to(device)
+    # Iterate through all clients
+    for c in range(C):
+        test_loss, cur_preds, cur_psnr = eval_epoch(data_loader=test_loader, model=model, criterion=criterion,
+                                                    device=device, save_file=test_labels)
+
+    #np.save('/home/zoe/ex_preds.npy', preds)
 
 # start main
 if __name__ == "__main__":

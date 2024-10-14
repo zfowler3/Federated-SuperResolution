@@ -65,6 +65,9 @@ def eval_epoch(data_loader, model, criterion, device, save_file=None):
     count = 0
     #total_psnr = 0
     loss = []
+    c = nn.MSELoss().to(device)
+    psnr = []
+
     if save_file is not None:
         prediction = np.zeros(save_file.shape)
     else:
@@ -74,19 +77,21 @@ def eval_epoch(data_loader, model, criterion, device, save_file=None):
         for i, (image, target) in enumerate(data_loader):
             image = image.to(device).type(torch.float)
             target = target.to(device).type(torch.long)
-            output = model(image)
-            if i == 0:
-                print('test output size : ', output.shape)
+            output, recon = model(image)
+            # if i == 0:
+            #     print('test output size : ', output.shape)
             if save_file is not None:
                 prediction[:, i, :] = output.argmax(1).detach().cpu().numpy().T.squeeze()
             loss_ = criterion(output, target)
+            reconstruction_loss = c(recon, image)
+            loss_ += reconstruction_loss
             loss.append(loss_.item())
             count += 1
-            #total_psnr += peak_signal_noise_ratio(output, gt_image)
+            psnr.append(peak_signal_noise_ratio(recon, image))
 
     #epoch_psnr = total_psnr / count
     epoch_loss = sum(loss) / len(loss)
-    return epoch_loss, prediction
+    return epoch_loss, prediction, psnr
 
 def eval_epoch_save(data_loader, model, criterion, device):
     model.eval()
