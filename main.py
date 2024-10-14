@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 import os
 import torch
@@ -10,6 +12,7 @@ from Models.segnet import FaciesSegNet
 from Models.unet_seg import UNet
 from Train.train_one_epoch import train_epoch, eval_epoch
 from Utils.get_seismic_data import get_dataset_seismic
+from Utils.local_update import LocalUpdate
 
 
 def args_parser():
@@ -80,17 +83,26 @@ def main():
     if not os.path.exists(model_path):
         os.makedirs(model_path)
 
-    # Create models
-    # Debugging: just create one instance of model
+
     device = 'cuda'
     model = model.to(device)
-    criterion = nn.CrossEntropyLoss().to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
-    user = user_groups[0]
-    for e in range(args.local_ep):
-        loss, model = train_epoch(data_loader=user["train"], model=model, criterion=criterion, optimizer=optimizer,
-                                  device=device, epoch=e, dataset='seismic', model_type='unet')
-        print('Epoch {}/{}: Loss {}'.format(e, args.local_ep, loss))
+    # Set up all local models in dictionary
+    local_models = {
+        i: {"model": None} for i in range(C)
+    }
+    for j in range(len(local_models)):
+        local_models[j]["model"] = copy.deepcopy(model)
+
+    # Train all clients
+    for c in range(C):
+        current_client = LocalUpdate(args, client_idx=c)
+        loaded_model = copy.deepcopy(local_models[c]["model"])
+        updated_weights = current_client.update_weights(model=copy.deepcopy(loaded_model))
+        # Load in updated weights and save off model for particular client
+        loaded_model.load_state_dict(updated_weights)
+        local_models[c]["model"] = copy.deepcopy(loaded_model)
+
+
     print('Testing')
     test_loss, preds = eval_epoch(data_loader=test_loader, model=model, criterion=criterion, device=device,
                                   save_file=test_labels)
