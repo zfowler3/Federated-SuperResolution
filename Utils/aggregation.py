@@ -37,8 +37,10 @@ def majority_vote(preds, img_num):
 
 def average_vote(preds, img_num):
     s = preds[0]["pred"][:, img_num, :]
+    print('s: ', s.shape)
     x, y = s.shape[0], s.shape[1]
     combined = np.zeros(shape=(len(preds), x, y))
+    print('combined shape: ', combined.shape)
     for c in range(len(preds)):
         combined[:, c, :] = preds[c]["pred"][:, img_num, :]
 

@@ -18,10 +18,10 @@ def train_epoch(data_loader, model, criterion, optimizer, device, dataset, model
         img = img.to(device).type(torch.float)
         target = target.to(device).type(torch.long)
         output, recon = model(img)
-        if i == 0:
-            print('Train img input: ', img.shape)
-            print('Output shape: ', output.shape)
-            print('Reconstruction shape: ', recon.shape)
+        # if i == 0:
+        #     print('Train img input: ', img.shape)
+        #     print('Output shape: ', output.shape)
+        #     print('Reconstruction shape: ', recon.shape)
             # r = recon.detach().cpu().numpy()
             # rr = r[0].squeeze()
             # print(rr.shape)
