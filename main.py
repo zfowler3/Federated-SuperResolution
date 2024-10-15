@@ -81,7 +81,7 @@ def main():
     test_loader2 = DataLoader(test2, batch_size=1, shuffle=False)
 
     # Define folder to save results
-    results_path = args.path + 'Results/' + args.date + '/'
+    results_path = args.path + 'Results/' + args.date + '/' + str(C) + '_Clients_' + args.agg + '/'
     if not os.path.exists(results_path):
         os.makedirs(results_path)
     model_path = results_path + 'saved models/'
