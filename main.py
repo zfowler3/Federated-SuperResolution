@@ -147,9 +147,14 @@ def main():
     print(miou_class1)
     print('Test Set 2 Results: mIoU - ', miou2)
     print(miou_class2)
+    with open(results_path + 'results.txt', "w") as file:
+        file.write('Test Set 1 Results: mIoU - ' + miou1)
+        file.write(str(miou_class1))
+        file.write('Test Set 2 Results: mIoU - ' + miou2)
+        file.write(str(miou_class2))
     # Save off predictions
-    np.save(results_path + 'overall_testset2.npy', overall2)
-    np.save(results_path + 'overall_testset1.npy', overall1)
+    np.save(results_path + 'overall_testset2_' + args.agg + '.npy', overall2)
+    np.save(results_path + 'overall_testset1_' + args.agg + '.npy', overall1)
 
 # start main
 if __name__ == "__main__":
