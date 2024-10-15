@@ -29,7 +29,7 @@ def majority_vote(preds, img_num):
     x, y = s.shape[0], s.shape[1]
     combined = np.zeros(shape=(len(preds), x, y))
     for c in range(len(preds)):
-        combined[:, c, :] = preds[c]["pred"][:, img_num, :]
+        combined[c, :, :] = preds[c]["pred"][:, img_num, :]
 
     # For specific image, do a pixel-wise majority vote
     majority_pred = np.equal.outer(combined, np.arange(6)).sum(0).argmax(-1)
@@ -37,12 +37,10 @@ def majority_vote(preds, img_num):
 
 def average_vote(preds, img_num):
     s = preds[0]["pred"][:, img_num, :]
-    print('s: ', s.shape)
     x, y = s.shape[0], s.shape[1]
     combined = np.zeros(shape=(len(preds), x, y))
-    print('combined shape: ', combined.shape)
     for c in range(len(preds)):
-        combined[:, c, :] = preds[c]["pred"][:, img_num, :]
+        combined[c, :, :] = preds[c]["pred"][:, img_num, :]
 
     # For specific image, do pixel-wise average (and round to give integer vals)
     avg_pred = np.round(np.mean(combined, axis=0))
@@ -58,7 +56,7 @@ def weighted_vote(preds, to_weight, img_num):
     x, y = s.shape[0], s.shape[1]
     combined = np.zeros(shape=(len(preds), x, y))
     for c in range(len(preds)):
-        combined[:, c, :] = preds[c]["pred"][:, img_num, :]
+        combined[c, :, :] = preds[c]["pred"][:, img_num, :]
     # Do weighted average, where each image is weighted wrt its produced score
     weighted_pred = np.round(np.average(combined, axis=0, weights=weights))
     return weighted_pred
