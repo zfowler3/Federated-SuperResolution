@@ -4,6 +4,8 @@ import numpy as np
 import os
 import torch
 import argparse
+
+from sklearn.metrics import jaccard_score
 from torch import nn
 from torch.utils.data import DataLoader
 from torchvision.transforms import transforms
@@ -56,7 +58,7 @@ def main():
     args.num_classes = 6
 
     # Get models for each client
-    model = UNet(n_channels=1, n_classes=6)
+    model = UNet(n_channels=1, n_classes=args.num_classes)
     # Transforms for test
     data_transforms_test = transforms.Compose([transforms.ToTensor()])
     # Get dataset and groups
@@ -122,7 +124,6 @@ def main():
         local_psnr_2[c]["val"] = cur_psnr
 
     # Compare and aggregate
-
 
     #np.save('/home/zoe/ex_preds.npy', preds)
 

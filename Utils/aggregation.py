@@ -1,11 +1,12 @@
 import numpy as np
+from sklearn.metrics import jaccard_score
 
-def aggregate(preds, psnr, mode='majority'):
+
+def aggregate(gt_labels, preds, psnr, mode='majority'):
     # total number of test imgs
     num_test_img = len(psnr[0]["val"])
     p = preds[0]["pred"]
     overall = np.zeros_like(p)
-    iou = []
 
     for i in range(num_test_img):
         if mode == 'majority':
@@ -16,9 +17,12 @@ def aggregate(preds, psnr, mode='majority'):
             final_pred = weighted_vote(preds=preds, to_weight=psnr, img_num=i)
 
         overall[:, i, :] = final_pred
-        # Get IoU, etc. stats for produced image
 
-    return overall
+    # Get mIoU Scores for predictions
+    miou_test = jaccard_score(gt_labels.flatten(), overall.flatten(), labels=list(range(6)), average='weighted')
+    miou_test_class = jaccard_score(gt_labels.flatten(), overall.flatten(), labels=list(range(6)), average=None)
+
+    return overall, miou_test, miou_test_class
 
 def majority_vote(preds, img_num):
     s = preds[0]["pred"][:, img_num, :]
