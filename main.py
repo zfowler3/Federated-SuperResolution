@@ -99,6 +99,7 @@ def main():
 
     # Train all clients
     for c in range(C):
+        print('Training client ' + str(c))
         current_client = LocalUpdate(args, client_idx=c)
         loaded_model = copy.deepcopy(local_models[c]["model"])
         updated_weights = current_client.update_weights(model=copy.deepcopy(loaded_model))
