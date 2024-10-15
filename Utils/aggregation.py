@@ -6,6 +6,7 @@ def aggregate(gt_labels, preds, psnr, mode='majority'):
     # total number of test imgs
     num_test_img = len(psnr[0]["val"])
     p = preds[0]["pred"]
+    #print('p shape: ', p.shape)
     overall = np.zeros_like(p)
 
     for i in range(num_test_img):

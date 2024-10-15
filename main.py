@@ -22,9 +22,9 @@ def args_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--rounds', type=int, default=10,
                         help="number of rounds of training")
-    parser.add_argument('--num_users', type=int, default=2,
+    parser.add_argument('--num_users', type=int, default=10,
                         help="number of users: C")
-    parser.add_argument('--local_ep', type=int, default=1,
+    parser.add_argument('--local_ep', type=int, default=10,
                         help="the number of local epochs: E")
     parser.add_argument('--local_bs', type=int, default=4,
                         help="local batch size: B")
