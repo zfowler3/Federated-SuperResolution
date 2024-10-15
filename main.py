@@ -13,6 +13,7 @@ from Data.dataloader import InlineLoader
 from Models.segnet import FaciesSegNet
 from Models.unet_seg import UNet
 from Train.train_one_epoch import train_epoch, eval_epoch
+from Utils.aggregation import aggregate
 from Utils.get_seismic_data import get_dataset_seismic
 from Utils.local_update import LocalUpdate
 
@@ -37,6 +38,8 @@ def args_parser():
                         default='/home/zoe/GhassanGT Dropbox/Zoe Fowler/Zoe/InSync/BIGandDATA/Seismic/data/')
     parser.add_argument('--path', type=str,
                         default='/home/zoe/GhassanGT Dropbox/Zoe Fowler/Zoe/InSync/BIGandDATA/Seismic/')
+    parser.add_argument('--agg', type=str,
+                        default='majority', choices=['avg', 'majority', 'psnr'])
     args = parser.parse_args()
     return args
 
@@ -85,7 +88,6 @@ def main():
     if not os.path.exists(model_path):
         os.makedirs(model_path)
 
-
     device = 'cuda'
     model = model.to(device)
     # Set up all local models in dictionary
@@ -108,6 +110,12 @@ def main():
     print('Testing')
     # For each local model, pass in test images. Save off outputs, scores, etc. for final aggregation
     # Dictionary for saving off outputs for test set 2
+    local_preds_1 = {
+        i: {"pred": None} for i in range(C)
+    }
+    local_psnr_1 = {
+        i: {"val": []} for i in range(C)
+    }
     local_preds_2 = {
         i: {"pred": None} for i in range(C)
     }
@@ -118,14 +126,29 @@ def main():
     # Iterate through all clients
     for c in range(C):
         client_model = copy.deepcopy(local_models[c]["model"]) # Load current local model
+        # test set 2
         test_loss, cur_preds, cur_psnr = eval_epoch(data_loader=test_loader, model=client_model, criterion=criterion,
                                                     device=device, save_file=test_labels)
         local_preds_2[c]["pred"] = cur_preds
         local_psnr_2[c]["val"] = cur_psnr
 
-    # Compare and aggregate
+        # test set 1
+        test_loss_, cur_preds1, cur_psnr1 = eval_epoch(data_loader=test_loader2, model=client_model, criterion=criterion,
+                                                    device=device, save_file=testlab2)
+        local_preds_1[c]["pred"] = cur_preds1
+        local_psnr_1[c]["val"] = cur_psnr1
 
-    #np.save('/home/zoe/ex_preds.npy', preds)
+    # Compare and aggregate
+    overall2, miou2, miou_class2 = aggregate(gt_labels=test_labels, preds=local_preds_2, psnr=local_psnr_2, mode=args.agg)
+    overall1, miou1, miou_class1 = aggregate(gt_labels=testlab2, preds=local_preds_1, psnr=local_psnr_1, mode=args.agg)
+
+    print('Test Set 1 Results: mIoU - ', miou1)
+    print(miou_class1)
+    print('Test Set 2 Results: mIoU - ', miou2)
+    print(miou_class2)
+    # Save off predictions
+    np.save(results_path + 'overall_testset2.npy', overall2)
+    np.save(results_path + 'overall_testset1.npy', overall1)
 
 # start main
 if __name__ == "__main__":
