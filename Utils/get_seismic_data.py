@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 from torch.utils.data import DataLoader
 from torchvision.transforms import transforms
@@ -17,7 +19,7 @@ def get_dataset_seismic(args, transform=None):
     test2_s = (test2 - test2.min()) / (test2.max() - test2.min())
     # Create client idxs
     #user_idxs = create_clients(train_data, args.num_users)
-    user_idxs = overall_partition(train_data, num_clients=args.num_users, labels=train_labels, transf=transform)
+    user_idxs = overall_partition(args, train_data, num_clients=args.num_users, labels=train_labels, transf=transform)
     #train_idxs, test_idxs = client_idxs(data=train_data, num_clients=args.num_users)
 
     return train_data, test_seismic, user_idxs, test2_s
@@ -116,7 +118,7 @@ def client_idxs(data, num_clients):
     test, train = create_local_test(idxs=client_idx)
     return train, test
 
-def overall_partition(data, num_clients, labels, transf=None):
+def overall_partition(args, data, num_clients, labels, transf=None):
     # local_loaders = {
     #     i: {"datasize": 0, "train": None, "test": None, "test_size": 0} for i in range(num_clients)
     # }
@@ -126,7 +128,14 @@ def overall_partition(data, num_clients, labels, transf=None):
     #client_idxs, _ = create_clients_rand(data, num_clients)
     #train, _ = create_clients_rand_sections(data, num_clients)
     #test, train = create_local_test(idxs=client_idxs)
-
+    # Load or get new train idxs
+    data_path = args.path + 'saved_idxs/' + str(num_clients) + '_train_idxs.npy'
+    if os.path.exists(data_path):
+        train = np.load(data_path, allow_pickle=True)
+    else:
+        train = create_clients_crossline_rand(data, num_clients)
+        # Save
+        np.save(data_path, train, allow_pickle=True)
 
     data_transforms_ = transforms.Compose([transforms.ToTensor()])
 
