@@ -37,6 +37,21 @@ def create_clients(data, num_clients):
 
     return client_idxs
 
+def create_clients_crossline_rand(data, num_clients):
+    num_crosslines = data.shape[1]
+    client_idxs = {}
+    start = 0
+    amt = [0.20, 0.40, 0.60, 0.8, 1.0, 1.2, 1.3]
+    num_crosslines_per_client = int(num_crosslines / num_clients)
+
+    for c in range(num_clients):
+        cur_client_amt = int(np.random.choice(amt)*num_crosslines_per_client)
+        cur_idxs = np.arange(start, start+cur_client_amt)
+        start += cur_client_amt
+        client_idxs[c] = cur_idxs
+
+    return client_idxs
+
 def create_clients_rand(data, num_clients):
     client_idxs = {}
     choice_tracker = []
@@ -109,8 +124,9 @@ def overall_partition(data, num_clients, labels, transf=None):
         i: {"datasize": 0, "train": None} for i in range(num_clients)
     }
     #client_idxs, _ = create_clients_rand(data, num_clients)
-    train, _ = create_clients_rand_sections(data, num_clients)
+    #train, _ = create_clients_rand_sections(data, num_clients)
     #test, train = create_local_test(idxs=client_idxs)
+
 
     data_transforms_ = transforms.Compose([transforms.ToTensor()])
 
