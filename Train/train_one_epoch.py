@@ -87,7 +87,8 @@ def eval_epoch(data_loader, model, criterion, device, save_file=None):
             loss_ += reconstruction_loss
             loss.append(loss_.item())
             count += 1
-            psnr.append(peak_signal_noise_ratio(recon, image))
+            cur_psnr = peak_signal_noise_ratio(recon, image).item()
+            psnr.append(cur_psnr)
 
     #epoch_psnr = total_psnr / count
     epoch_loss = sum(loss) / len(loss)
