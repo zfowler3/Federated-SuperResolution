@@ -133,6 +133,10 @@ def main():
             file.write(str(miou_test_class2) + '\n')
             file.write(str(final_avg) + '\n')
 
+    # Save off predictions
+    np.save(results_path + 'overall_testset2_' + args.agg + '.npy', cur_preds_2)
+    np.save(results_path + 'overall_testset1_' + args.agg + '.npy', cur_preds_1)
+
 # start main
 if __name__ == "__main__":
     main()
