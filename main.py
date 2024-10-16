@@ -31,7 +31,7 @@ def args_parser():
     parser.add_argument('--lr', type=float, default=0.001,
                         help='learning rate')
     parser.add_argument('--seed', type=int, default=1, help='random seed')
-    parser.add_argument('--date', type=str, default='10-15-24', help='Set date for experiments')
+    parser.add_argument('--date', type=str, default='10-15-24-overlap', help='Set date for experiments')
     parser.add_argument('--gpu_ids', default='0,1', help="To use cuda, set \
                         to a specific GPU ID. Default set to use CPU.")
     parser.add_argument('--data_path', type=str,
