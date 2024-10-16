@@ -89,18 +89,16 @@ def main():
 
     device = 'cuda'
     model = model.to(device)
-    # # Set up all local models in dictionary
-    # local_models = {
-    #     i: {"model": None} for i in range(C)
-    # }
-    # for j in range(len(local_models)):
-    #     local_models[j]["model"] = copy.deepcopy(model)
+
+    if os.path.exists(results_path + 'results.txt'):
+        os.remove(results_path + 'results.txt')
 
     # Train all clients
     for comm_round in range(args.rounds):
         print(f'\n | Global Training Round : {comm_round + 1} |\n')
         local_weights = []
         sizes = []
+        criterion = nn.CrossEntropyLoss().to(device)
         for c in range(C):
             print('Training client ' + str(c))
             current_client = LocalUpdate(args, client_idx=c)
@@ -111,6 +109,29 @@ def main():
         # Aggregation
         global_weights = AvgWeights(local_weights)
         model.load_state_dict(global_weights)
+        # Testing
+        print('Testing Global Model')
+        # Test set 2
+        test_loss2, cur_preds_2, cur_psnr_2 = eval_epoch(data_loader=test_loader, model=copy.deepcopy(model), criterion=criterion,
+                                                    device=device, save_file=test_labels)
+        miou_test2 = jaccard_score(test_labels.flatten(), cur_preds_2.flatten(), labels=list(range(6)), average='weighted')
+        miou_test_class2 = jaccard_score(test_labels.flatten(), cur_preds_2.flatten(), labels=list(range(6)), average=None)
+        # Test set 1
+        test_loss1, cur_preds_1, cur_psnr_1 = eval_epoch(data_loader=test_loader2, model=copy.deepcopy(model), criterion=criterion,
+                                                    device=device, save_file=testlab2)
+        miou_test1 = jaccard_score(testlab2.flatten(), cur_preds_1.flatten(), labels=list(range(6)), average='weighted')
+        miou_test_class1 = jaccard_score(testlab2.flatten(), cur_preds_1.flatten(), labels=list(range(6)), average=None)
+
+        final_avg = (miou_test2 + miou_test1) / 2
+        print('Avg miou on test sets: ', final_avg)
+
+        with open(results_path + 'results.txt', "w") as file:
+            file.write('------ Round '+ str(comm_round+1) + '--------' + '\n')
+            file.write('Test Set 1 Results: mIoU - ' + str(miou_test1) + '\n')
+            file.write(str(miou_test_class1) + '\n')
+            file.write('Test Set 2 Results: mIoU - ' + str(miou_test2) + '\n')
+            file.write(str(miou_test_class2) + '\n')
+            file.write(str(final_avg) + '\n')
 
 # start main
 if __name__ == "__main__":
