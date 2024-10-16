@@ -14,6 +14,7 @@ from Train.train_one_epoch import train_epoch, eval_epoch
 from Utils.aggregation import aggregate
 from Utils.get_seismic_data import get_dataset_seismic
 from Utils.local_update import LocalUpdate
+from Utils.model_agg import AvgWeights
 
 
 def args_parser():
@@ -88,22 +89,28 @@ def main():
 
     device = 'cuda'
     model = model.to(device)
-    # Set up all local models in dictionary
-    local_models = {
-        i: {"model": None} for i in range(C)
-    }
-    for j in range(len(local_models)):
-        local_models[j]["model"] = copy.deepcopy(model)
+    # # Set up all local models in dictionary
+    # local_models = {
+    #     i: {"model": None} for i in range(C)
+    # }
+    # for j in range(len(local_models)):
+    #     local_models[j]["model"] = copy.deepcopy(model)
 
     # Train all clients
-    for c in range(C):
-        print('Training client ' + str(c))
-        current_client = LocalUpdate(args, client_idx=c)
-        loaded_model = copy.deepcopy(local_models[c]["model"])
-        updated_weights = current_client.update_weights(model=copy.deepcopy(loaded_model))
-        # Load in updated weights and save off model for particular client
-        loaded_model.load_state_dict(updated_weights)
-        local_models[c]["model"] = copy.deepcopy(loaded_model)
+    for comm_round in range(args.rounds):
+        print(f'\n | Global Training Round : {comm_round + 1} |\n')
+        local_weights = []
+        sizes = []
+        for c in range(C):
+            print('Training client ' + str(c))
+            current_client = LocalUpdate(args, client_idx=c)
+            loaded_model = copy.deepcopy(model)
+            updated_weights = current_client.update_weights(model=copy.deepcopy(loaded_model))
+            local_weights.append(copy.deepcopy(updated_weights))
+            sizes.append(args.user_groups[c]["datasize"])
+        # Aggregation
+        global_weights = AvgWeights(local_weights)
+        model.load_state_dict(global_weights)
 
 # start main
 if __name__ == "__main__":
