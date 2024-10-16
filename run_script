@@ -1,6 +1,6 @@
 #!/bin/bash
 
-python3 main.py --agg='psnr'
+python3 federated_main.py
 
 
 

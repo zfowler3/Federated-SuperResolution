@@ -136,6 +136,7 @@ def overall_partition(args, data, num_clients, labels, transf=None):
     else:
         train = create_clients_crossline_rand(data, num_clients)
         # Save
+        os.makedirs(args.path + 'saved_idxs/')
         np.save(data_path, train, allow_pickle=True)
 
     data_transforms_ = transforms.Compose([transforms.ToTensor()])
