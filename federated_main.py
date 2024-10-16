@@ -125,7 +125,7 @@ def main():
         final_avg = (miou_test2 + miou_test1) / 2
         print('Avg miou on test sets: ', final_avg)
 
-        with open(results_path + 'results.txt', "w") as file:
+        with open(results_path + 'results.txt', "a") as file:
             file.write('------ Round '+ str(comm_round+1) + '--------' + '\n')
             file.write('Test Set 1 Results: mIoU - ' + str(miou_test1) + '\n')
             file.write(str(miou_test_class1) + '\n')
