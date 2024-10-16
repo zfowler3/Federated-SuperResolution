@@ -132,6 +132,7 @@ def overall_partition(args, data, num_clients, labels, transf=None):
     data_path = args.path + 'saved_idxs/' + str(num_clients) + '_train_idxs.npy'
     if os.path.exists(data_path):
         train = np.load(data_path, allow_pickle=True)
+        train = train.item(0)
     else:
         train = create_clients_crossline_rand(data, num_clients)
         # Save
