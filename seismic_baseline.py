@@ -101,9 +101,12 @@ loss2, preds2, _ = eval_epoch(data_loader=test_loader2, model=copy.deepcopy(best
 loss1, preds1, _ = eval_epoch(data_loader=test_loader, model=copy.deepcopy(best_model), criterion=criterion1, device=device,
                               save_file=test_labels)
 
+preds_folder = '/home/zoe/GhassanGT Dropbox/Zoe Fowler/Zoe/InSync/BIGandDATA/Seismic/Results/baseline/'
 miou_test1 = jaccard_score(test_labels2.flatten(), preds2.flatten(), labels=list(range(6)), average='weighted')
+np.save(preds_folder + 'test_set_1.npy', preds2)
 miou_test1_class = jaccard_score(test_labels2.flatten(), preds2.flatten(), labels=list(range(6)), average=None)
 miou_test2 = jaccard_score(test_labels.flatten(), preds1.flatten(), labels=list(range(6)), average='weighted')
+np.save(preds_folder + 'test_set_2.npy', preds1)
 miou_test2_class = jaccard_score(test_labels.flatten(), preds1.flatten(), labels=list(range(6)), average=None)
 
 print('Baseline MIOU Score for Test set 1: ', miou_test1)
